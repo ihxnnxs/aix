@@ -6,10 +6,12 @@ import { KEYBINDS, matchKey } from "../context/keybind"
 import { StatusBar } from "../components/status-bar"
 import { WarningPanel } from "../components/warning-panel"
 import { BackupManager } from "../../config/backup"
+import { getStrings } from "../i18n"
 
 export function Transfer() {
   const theme = useTheme()
   const [state, actions] = useApp()
+  const t = getStrings()
 
   const installedCLIs = createMemo(() => state.clis.filter((c) => c.detection.installed))
 
@@ -138,15 +140,15 @@ export function Transfer() {
           onMouseDown={() => actions.navigate("home")}
           onMouseOver={() => {}}
         >
-          <text fg={theme.muted}>⮜ Back</text>
+          <text fg={theme.muted}>⮜ {t.back}</text>
         </box>
         <box flexDirection="row" gap={1}>
           <text fg={theme.accent}>⇄</text>
-          <text fg={theme.fg}>Transfer</text>
+          <text fg={theme.fg}>{t.transfer}</text>
         </box>
         <box flexGrow={1} />
         <Show when={selected().size > 0}>
-          <text fg={theme.accent}>{selected().size} selected</text>
+          <text fg={theme.accent}>{selected().size} {t.selected}</text>
         </Show>
       </box>
 
@@ -162,7 +164,7 @@ export function Transfer() {
           flexDirection="column"
           onMouseDown={() => setPanel("from")}
         >
-          <text fg={theme.muted}>FROM</text>
+          <text fg={theme.muted}>{t.from}</text>
           <Show when={fromCLI()}>
             <box flexDirection="row" gap={1}>
               <text
@@ -235,7 +237,7 @@ export function Transfer() {
           flexDirection="column"
           onMouseDown={() => setPanel("to")}
         >
-          <text fg={theme.muted}>TO</text>
+          <text fg={theme.muted}>{t.to}</text>
           <Show when={toCLI()}>
             <box flexDirection="row" gap={1}>
               <text
@@ -283,12 +285,12 @@ export function Transfer() {
 
       <WarningPanel warnings={warnings()} />
       <StatusBar hints={[
-        { key: "⮜⮞", label: "switch CLI" },
-        { key: "space", label: "select" },
-        { key: "⏎", label: "transfer" },
-        { key: "tab", label: "panel" },
-        ...(state.projectRoot ? [{ key: "s", label: "scope" }] : []),
-        { key: "esc", label: "back" },
+        { key: "⮜⮞", label: t.switchCli },
+        { key: "space", label: t.select },
+        { key: "⏎", label: t.transfer },
+        { key: "tab", label: t.panel },
+        ...(state.projectRoot ? [{ key: "s", label: t.scope }] : []),
+        { key: "esc", label: t.back },
       ]} />
     </box>
   )

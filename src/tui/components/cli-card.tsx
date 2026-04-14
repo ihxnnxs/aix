@@ -3,10 +3,12 @@ import { useTheme } from "../context/theme"
 import { MCPItem } from "./mcp-item"
 import { useApp } from "../context/app"
 import type { CLIState } from "../context/app"
+import { getStrings } from "../i18n"
 
 export function CLICard(props: { cli: CLIState; width?: number }) {
   const theme = useTheme()
   const [state] = useApp()
+  const t = getStrings()
 
   const globalServers = createMemo(() => props.cli.servers.filter((s) => s._scope === "global"))
   const projectServers = createMemo(() => props.cli.servers.filter((s) => s._scope === "project"))
@@ -35,10 +37,10 @@ export function CLICard(props: { cli: CLIState; width?: number }) {
         </Show>
       </box>
       <Show when={!props.cli.detection.installed}>
-        <text fg={theme.muted}>not found</text>
+        <text fg={theme.muted}>{t.notFound}</text>
       </Show>
       <Show when={props.cli.detection.installed && props.cli.servers.length === 0}>
-        <text fg={theme.muted}>no servers</text>
+        <text fg={theme.muted}>{t.noServers}</text>
       </Show>
       <Show when={props.cli.detection.installed && props.cli.servers.length > 0}>
         <box height={1} />
@@ -46,11 +48,11 @@ export function CLICard(props: { cli: CLIState; width?: number }) {
           <For each={props.cli.servers}>{(server) => <MCPItem server={server} />}</For>
         }>
           <Show when={globalServers().length > 0}>
-            <text fg={theme.muted}>Global ({globalServers().length})</text>
+            <text fg={theme.muted}>{t.global} ({globalServers().length})</text>
             <For each={globalServers()}>{(server) => <MCPItem server={server} />}</For>
           </Show>
           <Show when={projectServers().length > 0}>
-            <text fg={theme.muted}>Project ({projectServers().length})</text>
+            <text fg={theme.muted}>{t.project} ({projectServers().length})</text>
             <For each={projectServers()}>{(server) => <MCPItem server={server} />}</For>
           </Show>
         </Show>

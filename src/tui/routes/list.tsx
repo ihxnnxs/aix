@@ -5,10 +5,12 @@ import { useApp } from "../context/app"
 import { KEYBINDS, matchKey } from "../context/keybind"
 import { CLICard } from "../components/cli-card"
 import { StatusBar } from "../components/status-bar"
+import { getStrings } from "../i18n"
 
 export function List() {
   const theme = useTheme()
   const [state, actions] = useApp()
+  const t = getStrings()
   const dims = useTerminalDimensions()
 
   const stats = createMemo(() => {
@@ -37,11 +39,11 @@ export function List() {
           onMouseDown={() => actions.navigate("home")}
           onMouseOver={() => {}}
         >
-          <text fg={theme.muted}>⮜ Back</text>
+          <text fg={theme.muted}>⮜ {t.back}</text>
         </box>
         <box flexDirection="row" gap={1}>
           <text fg={theme.accent}>≡</text>
-          <text fg={theme.fg}>List</text>
+          <text fg={theme.fg}>{t.list}</text>
         </box>
         <box flexGrow={1} />
         <text fg={theme.muted}>{stats().installed} CLI · {stats().totalMcp} MCP</text>
@@ -53,9 +55,9 @@ export function List() {
       </box>
 
       <StatusBar hints={[
-        { key: "t", label: "transfer" },
-        { key: "esc", label: "back" },
-        { key: "q", label: "quit" },
+        { key: "t", label: t.transfer },
+        { key: "esc", label: t.back },
+        { key: "q", label: t.quit },
       ]} />
     </box>
   )

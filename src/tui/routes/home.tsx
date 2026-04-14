@@ -6,17 +6,12 @@ import { KEYBINDS, matchKey } from "../context/keybind"
 import { StatusBar } from "../components/status-bar"
 import { VERSION } from "../../version"
 import { checkForUpdate, type UpdateInfo } from "../../utils/update"
+import { getStrings } from "../i18n"
 
 const ASCII_LOGO = [
   "░█▀█░▀█▀░█░█░",
   "░█▀█░░█░░▄▀▄░",
   "░▀░▀░▀▀▀░▀░▀░",
-]
-
-const MENU_ITEMS = [
-  { id: "transfer" as const, label: "Transfer", icon: "⇄" },
-  { id: "list" as const, label: "List", icon: "≡" },
-  { id: "settings" as const, label: "Settings", icon: "⚙" },
 ]
 
 const SOCIAL_LINKS = [
@@ -27,6 +22,12 @@ const SOCIAL_LINKS = [
 export function Home() {
   const theme = useTheme()
   const [, actions] = useApp()
+  const t = getStrings()
+  const MENU_ITEMS = [
+    { id: "transfer" as const, label: t.transfer, icon: "⇄" },
+    { id: "list" as const, label: t.list, icon: "≡" },
+    { id: "settings" as const, label: t.settings, icon: "⚙" },
+  ]
   const [selected, setSelected] = createSignal(0)
   const [showTooltip, setShowTooltip] = createSignal(false)
   const [updateInfo, setUpdateInfo] = createSignal<UpdateInfo | null>(null)
@@ -77,7 +78,7 @@ export function Home() {
         ))}
 
         <box height={1} />
-        <text fg={theme.muted}>All your AI tools, one place</text>
+        <text fg={theme.muted}>{t.allYourAiTools}</text>
         <box height={1} />
 
         {/* Menu buttons */}
@@ -122,8 +123,8 @@ export function Home() {
             gap={1}
           >
             <text fg={theme.border}>⛒</text>
-            <text fg={theme.border}>Marketplace</text>
-            <text fg={theme.border}>Soon...</text>
+            <text fg={theme.border}>{t.marketplace}</text>
+            <text fg={theme.border}>{t.soon}</text>
           </box>
         </box>
       </box>
@@ -178,7 +179,7 @@ export function Home() {
             paddingBottom={1}
             backgroundColor={theme.bg}
           >
-            <text fg={theme.accent}>Update Available</text>
+            <text fg={theme.accent}>{t.updateAvailable}</text>
             <box height={1} />
             <text fg={theme.fg}>v{updateInfo()!.current} → v{updateInfo()!.latest}</text>
             <box height={1} />
@@ -195,7 +196,7 @@ export function Home() {
                 }}
                 onMouseOver={() => setUpdateBtn(0)}
               >
-                <text fg={updateBtn() === 0 ? theme.accent : theme.muted}>Update</text>
+                <text fg={updateBtn() === 0 ? theme.accent : theme.muted}>{t.update}</text>
               </box>
               <box
                 border
@@ -206,7 +207,7 @@ export function Home() {
                 onMouseDown={() => setShowUpdate(false)}
                 onMouseOver={() => setUpdateBtn(1)}
               >
-                <text fg={updateBtn() === 1 ? theme.accent : theme.muted}>Later</text>
+                <text fg={updateBtn() === 1 ? theme.accent : theme.muted}>{t.later}</text>
               </box>
             </box>
           </box>
