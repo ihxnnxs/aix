@@ -1,8 +1,8 @@
 <p align="center">
   <br />
-  <code>░█▀█░▀█▀░█░█░</code><br />
-  <code>░█▀█░░█░░▄▀▄░</code><br />
-  <code>░▀░▀░▀▀▀░▀░▀░</code><br />
+  <pre>░█▀█░▀█▀░█░█░
+░█▀█░░█░░▄▀▄░
+░▀░▀░▀▀▀░▀░▀░</pre><br />
   <br />
   <strong>AI eXchange</strong><br />
   <sub>您所有的 AI 工具，尽在一处。</sub>
@@ -25,7 +25,7 @@
 ## 安装
 
 ```bash
-npm install -g @ihxnnxs/aix
+curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 ```
 
 ## 使用

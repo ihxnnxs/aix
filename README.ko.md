@@ -1,8 +1,8 @@
 <p align="center">
   <br />
-  <code>░█▀█░▀█▀░█░█░</code><br />
-  <code>░█▀█░░█░░▄▀▄░</code><br />
-  <code>░▀░▀░▀▀▀░▀░▀░</code><br />
+  <pre>░█▀█░▀█▀░█░█░
+░█▀█░░█░░▄▀▄░
+░▀░▀░▀▀▀░▀░▀░</pre><br />
   <br />
   <strong>AI eXchange</strong><br />
   <sub>모든 AI 도구를 한 곳에서.</sub>
@@ -25,7 +25,7 @@
 ## 설치
 
 ```bash
-npm install -g @ihxnnxs/aix
+curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 ```
 
 ## 사용법

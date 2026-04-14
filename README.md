@@ -1,8 +1,6 @@
 <p align="center">
   <br />
-  <code>░█▀█░▀█▀░█░█░</code><br />
-  <code>░█▀█░░█░░▄▀▄░</code><br />
-  <code>░▀░▀░▀▀▀░▀░▀░</code><br />
+  <img src="assets/logo.png" alt="AIX" width="300" /><br />
   <br />
   <strong>AI eXchange</strong><br />
   <sub>All your AI tools, one place.</sub>
@@ -25,7 +23,7 @@ Transfer MCP server configs between AI coding tools through an interactive TUI. 
 ## Install
 
 ```bash
-npm install -g @ihxnnxs/aix
+curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 ```
 
 ## Usage

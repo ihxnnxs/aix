@@ -11,23 +11,25 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             target: bun-linux-x64
             artifact: aix-linux-x64
+            dist: dist/aix-linux-x64
           - os: ubuntu-24.04-arm
             target: bun-linux-arm64
             artifact: aix-linux-arm64
+            dist: dist/aix-linux-arm64
           - os: macos-latest
             target: bun-darwin-arm64
             artifact: aix-darwin-arm64
-          - os: macos-13
-            target: bun-darwin-x64
-            artifact: aix-darwin-x64
+            dist: dist/aix-darwin-arm64
           - os: windows-latest
             target: bun-windows-x64
             artifact: aix-windows-x64
+            dist: dist/aix-windows-x64
 
     runs-on: ${{ matrix.os }}
 
@@ -42,22 +44,15 @@ jobs:
 
       - name: Build
         shell: bash
-        run: |
-          ext=""
-          if [[ "${{ matrix.target }}" == *"windows"* ]]; then ext=".exe"; fi
-          bun build src/index.ts \
-            --compile \
-            --target ${{ matrix.target }} \
-            --outfile aix${ext}
+        run: bun run script/build-single.ts ${{ matrix.target }}
 
       - name: Package
         shell: bash
         run: |
           if [[ "${{ matrix.target }}" == *"windows"* ]]; then
-            7z a ${{ matrix.artifact }}.zip aix.exe
+            7z a ${{ matrix.artifact }}.zip ./${{ matrix.dist }}/aix.exe
           else
-            chmod +x aix
-            tar czf ${{ matrix.artifact }}.tar.gz aix
+            tar czf ${{ matrix.artifact }}.tar.gz -C ${{ matrix.dist }} aix
           fi
 
       - uses: actions/upload-artifact@v4
