@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+import { execFileSync } from "node:child_process"
+import { existsSync } from "node:fs"
+import { join, dirname } from "node:path"
+import { fileURLToPath } from "node:url"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const platform = process.platform
+const arch = process.arch
+const binName = platform === "win32" ? "aix.exe" : "aix"
+const pkgName = `@ihxnnxs/aix-${platform}-${arch}`
+
+const paths = [
+  join(__dirname, "..", "node_modules", pkgName, "bin", binName),
+  join(__dirname, "..", "dist", `aix-${platform}-${arch}`, binName),
+]
+
+for (const binPath of paths) {
+  if (existsSync(binPath)) {
+    try {
+      execFileSync(binPath, process.argv.slice(2), { stdio: "inherit" })
+      process.exit(0)
+    } catch (e) {
+      process.exit(e.status ?? 1)
+    }
+  }
+}
+
+console.error(`Error: No binary found for ${platform}-${arch}`)
+console.error(`Try: npm install ${pkgName}`)
+process.exit(1)

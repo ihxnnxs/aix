@@ -1,0 +1,37 @@
+{
+  "name": "@ihxnnxs/aix",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "aix": "./bin/aix"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "test": "bun test",
+    "build": "bun run script/build.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "description": "Universal MCP server manager for AI coding CLI tools",
+  "keywords": ["mcp", "ai", "cli", "claude", "cursor", "vscode", "transfer"],
+  "author": "ihxnnxs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ihxnnxs/aix"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/yargs": "^17.0.35"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.97",
+    "@opentui/solid": "^0.1.97",
+    "jsonc-parser": "^3.3.1",
+    "solid-js": "^1.9.12",
+    "yargs": "^18.0.0",
+    "zod": "^4.3.6"
+  }
+}

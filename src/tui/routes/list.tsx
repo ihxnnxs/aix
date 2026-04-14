@@ -1,0 +1,62 @@
+import { createMemo } from "solid-js"
+import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
+import { useTheme } from "../context/theme"
+import { useApp } from "../context/app"
+import { KEYBINDS, matchKey } from "../context/keybind"
+import { CLICard } from "../components/cli-card"
+import { StatusBar } from "../components/status-bar"
+
+export function List() {
+  const theme = useTheme()
+  const [state, actions] = useApp()
+  const dims = useTerminalDimensions()
+
+  const stats = createMemo(() => {
+    const installed = state.clis.filter((c) => c.detection.installed).length
+    const totalMcp = state.clis.reduce((sum, c) => sum + c.servers.length, 0)
+    return { installed, totalMcp }
+  })
+
+  const cardWidth = createMemo(() => Math.floor((dims().width - 4) / 2) - 1)
+
+  useKeyboard((key: any) => {
+    if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
+    if (key.name === "t") actions.navigate("transfer")
+  })
+
+  return (
+    <box flexDirection="column" width="100%" height="100%">
+      {/* Header */}
+      <box width="100%" height={3} flexDirection="row" alignItems="center" gap={1} paddingLeft={1} paddingRight={1}>
+        <box
+          border
+          borderStyle="rounded"
+          borderColor={theme.border}
+          paddingLeft={1}
+          paddingRight={1}
+          onMouseDown={() => actions.navigate("home")}
+          onMouseOver={() => {}}
+        >
+          <text fg={theme.muted}>⮜ Back</text>
+        </box>
+        <box flexDirection="row" gap={1}>
+          <text fg={theme.accent}>≡</text>
+          <text fg={theme.fg}>List</text>
+        </box>
+        <box flexGrow={1} />
+        <text fg={theme.muted}>{stats().installed} CLI · {stats().totalMcp} MCP</text>
+      </box>
+
+      {/* Cards */}
+      <box flexGrow={1} flexDirection="row" flexWrap="wrap" gap={1} padding={1}>
+        {state.clis.filter((cli) => cli.detection.installed).map((cli) => <CLICard cli={cli} width={cardWidth()} />)}
+      </box>
+
+      <StatusBar hints={[
+        { key: "t", label: "transfer" },
+        { key: "esc", label: "back" },
+        { key: "q", label: "quit" },
+      ]} />
+    </box>
+  )
+}

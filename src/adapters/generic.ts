@@ -1,0 +1,124 @@
+import * as jsonc from "jsonc-parser"
+import { existsSync } from "node:fs"
+import type { Adapter, AdapterCapabilities, DetectResult, MCPServer } from "./types"
+import { createMCPServer } from "./types"
+import type { CLIDef } from "./detector"
+
+export class GenericMCPAdapter implements Adapter {
+  id: string
+  name: string
+  icon: string
+  hasProjectScope: boolean
+  capabilities: AdapterCapabilities = {
+    mcp: true,
+    skills: false,
+    rules: false,
+  }
+
+  private def: CLIDef
+  private projectRoot: string | null
+  private globalConfigPath: string | null = null
+  private projectConfigPath: string | null = null
+
+  constructor(def: CLIDef, projectRoot?: string | null) {
+    this.def = def
+    this.id = def.id
+    this.name = def.name
+    this.icon = def.icon
+    this.projectRoot = projectRoot ?? null
+    this.hasProjectScope = !!def.projectPaths && !!this.projectRoot
+  }
+
+  async detect(): Promise<DetectResult> {
+    for (const p of this.def.paths()) {
+      if (existsSync(p)) {
+        this.globalConfigPath = p
+        break
+      }
+    }
+    if (this.projectRoot && this.def.projectPaths) {
+      for (const p of this.def.projectPaths(this.projectRoot)) {
+        if (existsSync(p)) {
+          this.projectConfigPath = p
+          break
+        }
+      }
+    }
+    const installed = !!this.globalConfigPath || !!this.projectConfigPath
+    return {
+      installed,
+      configPath: this.globalConfigPath ?? this.projectConfigPath ?? null,
+    }
+  }
+
+  async getMCPServers(scope: "global" | "project" | "all" = "all"): Promise<MCPServer[]> {
+    const servers: MCPServer[] = []
+    if (scope === "global" || scope === "all") {
+      servers.push(...await this.readServers("global"))
+    }
+    if (scope === "project" || scope === "all") {
+      servers.push(...await this.readServers("project"))
+    }
+    return servers
+  }
+
+  async writeMCPServer(server: MCPServer, scope: "global" | "project" = "global"): Promise<void> {
+    const path = this.getWritePath(scope)
+    if (!path) throw new Error(`${this.name} does not support ${scope} scope`)
+    const keyPath = this.getServerKey(scope)
+    let text = await this.readFile(path) ?? "{}"
+    const keys = [...keyPath.split("."), server.name]
+    const edits = jsonc.modify(text, keys, server._raw, {})
+    text = jsonc.applyEdits(text, edits)
+    await Bun.write(path, text)
+  }
+
+  async removeMCPServer(name: string, scope: "global" | "project" = "global"): Promise<void> {
+    const path = this.getWritePath(scope)
+    if (!path) return
+    const text = await this.readFile(path)
+    if (!text) return
+    const keyPath = this.getServerKey(scope)
+    const keys = [...keyPath.split("."), name]
+    const edits = jsonc.modify(text, keys, undefined, {})
+    const updated = jsonc.applyEdits(text, edits)
+    await Bun.write(path, updated)
+  }
+
+  private async readServers(scope: "global" | "project"): Promise<MCPServer[]> {
+    const path = scope === "global" ? this.globalConfigPath : this.projectConfigPath
+    if (!path) return []
+    const text = await this.readFile(path)
+    if (!text) return []
+    const parsed = jsonc.parse(text)
+    const keyPath = this.getServerKey(scope)
+    const keys = keyPath.split(".")
+    let obj: any = parsed
+    for (const k of keys) {
+      obj = obj?.[k]
+    }
+    if (!obj || typeof obj !== "object") return []
+    return Object.entries(obj).map(([name, raw]) =>
+      createMCPServer(name, raw as Record<string, unknown>, this.id, scope),
+    )
+  }
+
+  private getServerKey(scope: "global" | "project"): string {
+    if (scope === "project" && this.def.projectServerKey) return this.def.projectServerKey
+    return this.def.serverKey ?? "mcpServers"
+  }
+
+  private getWritePath(scope: "global" | "project"): string | null {
+    if (scope === "global") {
+      return this.globalConfigPath ?? this.def.paths()[0]
+    }
+    if (!this.projectRoot || !this.def.projectPaths) return null
+    return this.projectConfigPath ?? this.def.projectPaths(this.projectRoot)[0]
+  }
+
+  private async readFile(path: string): Promise<string | null> {
+    const file = Bun.file(path)
+    if (!(await file.exists())) return null
+    return file.text()
+  }
+}
