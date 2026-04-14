@@ -11,6 +11,8 @@ export interface CLIDef {
   serverKey?: string // dot-separated JSON path, default "mcpServers"
   projectPaths?: (root: string) => string[]
   projectServerKey?: string
+  rulesPath?: () => string[]
+  projectRulesPath?: (root: string) => string[]
 }
 
 const home = homedir()
@@ -37,6 +39,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     icon: "CC",
     paths: () => [join(home, ".claude.json")],
     projectPaths: (root) => [join(root, ".mcp.json")],
+    rulesPath: () => [join(home, ".claude", "CLAUDE.md")],
+    projectRulesPath: (root) => [join(root, "CLAUDE.md")],
   },
   "claude-desktop": {
     id: "claude-desktop",
@@ -50,6 +54,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
     icon: "Cu",
     paths: () => [join(home, ".cursor", "mcp.json")],
     projectPaths: (root) => [join(root, ".cursor", "mcp.json")],
+    projectRulesPath: (root) => [join(root, ".cursorrules"), join(root, ".cursor", "rules")],
   },
   vscode: {
     id: "vscode",
@@ -59,6 +64,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
     serverKey: "mcp.servers",
     projectPaths: (root) => [join(root, ".vscode", "mcp.json")],
     projectServerKey: "servers",
+    projectRulesPath: (root) => [join(root, ".github", "copilot-instructions.md")],
   },
   windsurf: {
     id: "windsurf",
@@ -68,12 +74,14 @@ const CLI_DEFS: Record<string, CLIDef> = {
       join(home, ".codeium", "windsurf", "mcp_config.json"),
       join(appDataDir(), "Windsurf", "User", "settings.json"),
     ],
+    projectRulesPath: (root) => [join(root, ".windsurfrules")],
   },
   cline: {
     id: "cline",
     name: "Cline",
     icon: "Cl",
     paths: () => vscodeGlobalStorage("saoudrizwan.claude-dev"),
+    projectRulesPath: (root) => [join(root, ".clinerules")],
   },
   "roo-code": {
     id: "roo-code",
@@ -81,6 +89,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     icon: "Ro",
     paths: () => vscodeGlobalStorage("rooveterinaryinc.roo-cline"),
     projectPaths: (root) => [join(root, ".roo", "mcp.json")],
+    rulesPath: () => [join(home, ".roo", "rules")],
+    projectRulesPath: (root) => [join(root, ".roo", "rules")],
   },
   "kilo-code": {
     id: "kilo-code",
@@ -88,6 +98,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
     icon: "Ki",
     paths: () => vscodeGlobalStorage("kilocode.kilo-code"),
     projectPaths: (root) => [join(root, ".kilocode", "mcp.json")],
+    projectRulesPath: (root) => [join(root, ".kilo", "rules")],
   },
   trae: {
     id: "trae",
@@ -98,6 +109,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
       join(appDataDir(), "Trae", "User", "settings.json"),
     ],
     projectPaths: (root) => [join(root, ".trae", "mcp.json")],
+    projectRulesPath: (root) => [join(root, ".trae", "rules", "project_rules.md")],
   },
   opencode: {
     id: "opencode",
@@ -109,6 +121,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
     serverKey: "mcp",
     projectPaths: (root) => [join(root, "opencode.json")],
     projectServerKey: "mcp",
+    projectRulesPath: (root) => [join(root, "AGENTS.md")],
   },
   "qwen-code": {
     id: "qwen-code",
@@ -119,6 +132,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
       join(home, ".qwen", "settings.json"),
     ],
     projectPaths: (root) => [join(root, ".qwen", "settings.json")],
+    rulesPath: () => [join(home, ".qwen", "AGENTS.md")],
+    projectRulesPath: (root) => [join(root, "AGENTS.md")],
   },
   "claude-ide": {
     id: "claude-ide",
@@ -135,6 +150,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
       join(home, ".droid", "mcp.json"),
     ],
     projectPaths: (root) => [join(root, ".factory", "mcp.json")],
+    projectRulesPath: (root) => [join(root, ".factory", "settings.json")],
   },
   goose: {
     id: "goose",
@@ -144,6 +160,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
       join(appDataDir(), "goose", "config.json"),
       join(home, ".config", "goose", "config.json"),
     ],
+    projectRulesPath: (root) => [join(root, ".goosehints")],
   },
   crush: {
     id: "crush",
@@ -155,6 +172,7 @@ const CLI_DEFS: Record<string, CLIDef> = {
     ],
     projectPaths: (root) => [join(root, ".crush.json")],
     projectServerKey: "mcp",
+    projectRulesPath: (root) => [join(root, "AGENTS.md"), join(root, "CRUSH.md")],
   },
   eigent: {
     id: "eigent",
