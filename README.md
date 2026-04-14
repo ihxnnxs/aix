@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/ihxnnxs/aix/releases"><img src="https://img.shields.io/github/v/release/ihxnnxs/aix" alt="Release" /></a>
-  <a href="https://github.com/ihxnnxs/aix/actions"><img src="https://img.shields.io/github/actions/workflow/status/ihxnnxs/aix/ci.yml" alt="Build" /></a>
+  <a href="https://github.com/ihxnnxs/aix/actions"><img src="https://img.shields.io/github/actions/workflow/status/ihxnnxs/aix/release.yml" alt="Build" /></a>
   <a href="https://github.com/ihxnnxs/aix/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ihxnnxs/aix" alt="License" /></a>
 </p>
 
@@ -18,7 +18,7 @@
 
 ---
 
-Transfer MCP server configs between AI coding tools through an interactive TUI. Supports 16 tools with both global and project-scoped configurations.
+Transfer MCP servers and rules between AI coding tools through an interactive TUI. Supports 16 tools with both global and project-scoped configurations.
 
 ## Install
 
@@ -30,39 +30,42 @@ curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 
 ```bash
 aix              # Launch interactive TUI
-aix list         # View MCP servers across tools
-aix transfer     # Transfer MCP servers between tools
+aix list         # View MCP servers and rules across tools
+aix transfer     # Transfer between tools
 aix doctor       # Diagnose CLI tool detection
 ```
 
 ## Supported Tools
 
-| Tool | Global | Project |
-|------|:------:|:-------:|
-| Claude Code | ✓ | ✓ |
-| Claude Desktop | ✓ | |
-| Cursor | ✓ | ✓ |
-| VS Code | ✓ | ✓ |
-| Windsurf | ✓ | |
-| Cline | ✓ | |
-| Roo Code | ✓ | ✓ |
-| Kilo Code | ✓ | ✓ |
-| TRAE | ✓ | ✓ |
-| OpenCode | ✓ | ✓ |
-| Qwen Code | ✓ | ✓ |
-| Claude for IDE | ✓ | |
-| Droid | ✓ | ✓ |
-| Goose | ✓ | |
-| Crush | ✓ | ✓ |
-| Eigent | ✓ | |
+| Tool | MCP Global | MCP Project | Rules |
+|------|:----------:|:-----------:|:-----:|
+| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` |
+| Claude Desktop | ✓ | | |
+| Cursor | ✓ | ✓ | ✓ `.cursorrules` |
+| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` |
+| Windsurf | ✓ | | ✓ `.windsurfrules` |
+| Cline | ✓ | | ✓ `.clinerules` |
+| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` |
+| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` |
+| TRAE | ✓ | ✓ | ✓ `project_rules.md` |
+| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` |
+| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` |
+| Claude for IDE | ✓ | | |
+| Droid | ✓ | ✓ | ✓ `.factory/` |
+| Goose | ✓ | | ✓ `.goosehints` |
+| Crush | ✓ | ✓ | ✓ `AGENTS.md` |
+| Eigent | ✓ | | |
 
 ## Features
 
-- **Transfer** — select MCP servers from one tool, transfer to another with automatic format adaptation
+- **MCP Transfer** — select MCP servers from one tool, transfer to another with automatic format adaptation
+- **Rules Transfer** — transfer rules/instructions between tools (`.cursorrules` ↔ `CLAUDE.md` ↔ `.clinerules` etc.)
 - **Project scope** — run `aix` inside a project to manage both global and project-scoped configs
 - **Auto-detect** — scans your system for installed AI tools and reads their configurations
+- **Themes** — 5 built-in themes (Default, Dracula, Monokai, Gruvbox, Nord)
+- **Languages** — English, Русский, 中文, 日本語, 한국어
+- **Update checker** — notifies you when a new version is available
 - **Backups** — configs are backed up before any changes (`~/.config/aix/backups/`)
-- **Warnings** — incompatible fields flagged before transfer
 
 ## Development
 

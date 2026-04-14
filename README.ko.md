@@ -39,24 +39,24 @@ aix doctor       # 도구 감지 진단
 
 ## 지원 도구
 
-| 도구 | 글로벌 | 프로젝트 |
-|------|:------:|:--------:|
-| Claude Code | ✓ | ✓ |
-| Claude Desktop | ✓ | |
-| Cursor | ✓ | ✓ |
-| VS Code | ✓ | ✓ |
-| Windsurf | ✓ | |
-| Cline | ✓ | |
-| Roo Code | ✓ | ✓ |
-| Kilo Code | ✓ | ✓ |
-| TRAE | ✓ | ✓ |
-| OpenCode | ✓ | ✓ |
-| Qwen Code | ✓ | ✓ |
-| Claude for IDE | ✓ | |
-| Droid | ✓ | ✓ |
-| Goose | ✓ | |
-| Crush | ✓ | ✓ |
-| Eigent | ✓ | |
+| 도구 | MCP 글로벌 | MCP 프로젝트 | Rules |
+|------|:----------:|:-----------:|:-----:|
+| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` |
+| Claude Desktop | ✓ | | |
+| Cursor | ✓ | ✓ | ✓ `.cursorrules` |
+| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` |
+| Windsurf | ✓ | | ✓ `.windsurfrules` |
+| Cline | ✓ | | ✓ `.clinerules` |
+| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` |
+| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` |
+| TRAE | ✓ | ✓ | ✓ `project_rules.md` |
+| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` |
+| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` |
+| Claude for IDE | ✓ | | |
+| Droid | ✓ | ✓ | ✓ `.factory/` |
+| Goose | ✓ | | ✓ `.goosehints` |
+| Crush | ✓ | ✓ | ✓ `AGENTS.md` |
+| Eigent | ✓ | | |
 
 ## 기능
 
