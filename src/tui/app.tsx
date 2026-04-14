@@ -9,6 +9,7 @@ import type { Adapter } from "../adapters/types"
 import { Home } from "./routes/home"
 import { List } from "./routes/list"
 import { Transfer } from "./routes/transfer"
+import { Settings } from "./routes/settings"
 
 function AppContent() {
   const theme = useTheme()
@@ -31,6 +32,9 @@ function AppContent() {
           </Match>
           <Match when={state.route === "transfer"}>
             <Transfer />
+          </Match>
+          <Match when={state.route === "settings"}>
+            <Settings />
           </Match>
         </Switch>
       </Show>
