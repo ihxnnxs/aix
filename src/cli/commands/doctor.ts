@@ -3,6 +3,7 @@ import { getAllCLIDefs } from "../../adapters/detector"
 import { GenericMCPAdapter } from "../../adapters/generic"
 import { VERSION } from "../../version"
 import { findProjectRoot } from "../../utils/project"
+import { checkForUpdate } from "../../utils/update"
 
 export const DoctorCommand: CommandModule = {
   command: "doctor",
@@ -12,6 +13,10 @@ export const DoctorCommand: CommandModule = {
     console.log()
     console.log(`  aix v${VERSION}`)
     if (projectRoot) console.log(`  Project: ${projectRoot}`)
+    const updateInfo = await checkForUpdate()
+    if (updateInfo) {
+      console.log(`  ⚠ Update available: v${updateInfo.current} → v${updateInfo.latest}`)
+    }
     console.log()
     console.log("  CLI Detection")
 
