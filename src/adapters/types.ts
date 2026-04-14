@@ -11,6 +11,15 @@ export interface MCPServer {
   _scope: "global" | "project"
 }
 
+export interface RulesFile {
+  name: string
+  path: string
+  content: string
+  lines: number
+  _source: string
+  _scope: "global" | "project"
+}
+
 export interface DetectResult {
   installed: boolean
   configPath: string | null
@@ -35,6 +44,8 @@ export interface Adapter {
   getMCPServers(): Promise<MCPServer[]>
   writeMCPServer(server: MCPServer): Promise<void>
   removeMCPServer(name: string): Promise<void>
+  getRulesFiles(scope?: "global" | "project" | "all"): Promise<RulesFile[]>
+  writeRulesFile(content: string, targetPath: string): Promise<void>
 }
 
 export function createMCPServer(
