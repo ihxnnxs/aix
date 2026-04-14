@@ -1,10 +1,11 @@
-import { createSignal, Show } from "solid-js"
+import { createSignal, Show, onMount } from "solid-js"
 import { useKeyboard } from "@opentui/solid"
 import { useTheme } from "../context/theme"
 import { useApp } from "../context/app"
 import { KEYBINDS, matchKey } from "../context/keybind"
 import { StatusBar } from "../components/status-bar"
 import { VERSION } from "../../version"
+import { checkForUpdate, type UpdateInfo } from "../../utils/update"
 
 const ASCII_LOGO = [
   "░█▀█░▀█▀░█░█░",
@@ -27,6 +28,12 @@ export function Home() {
   const [, actions] = useApp()
   const [selected, setSelected] = createSignal(0)
   const [showTooltip, setShowTooltip] = createSignal(false)
+  const [updateInfo, setUpdateInfo] = createSignal<UpdateInfo | null>(null)
+
+  onMount(async () => {
+    const info = await checkForUpdate()
+    setUpdateInfo(info)
+  })
 
   useKeyboard((key: any) => {
     if (matchKey(key, KEYBINDS.up)) setSelected((s) => Math.max(0, s - 1))
@@ -40,6 +47,13 @@ export function Home() {
       <box width="100%" height={1} flexDirection="row" justifyContent="flex-end" paddingRight={1}>
         <text fg={theme.border}>v{VERSION}</text>
       </box>
+      <Show when={updateInfo()}>
+        <box width="100%" height={1} justifyContent="center">
+          <text fg={theme.accent}>
+            Update available: v{updateInfo()!.current} → v{updateInfo()!.latest}  run: curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
+          </text>
+        </box>
+      </Show>
       <box flexGrow={1} alignItems="center" justifyContent="center" flexDirection="column">
         {/* ASCII Logo */}
         {ASCII_LOGO.map((line) => (
