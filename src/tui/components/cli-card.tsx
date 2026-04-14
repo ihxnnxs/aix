@@ -14,8 +14,8 @@ export function CLICard(props: { cli: CLIState; width?: number }) {
 
   const borderColor = () => {
     if (!props.cli.detection.installed) return theme.border
-    if (props.cli.servers.length === 0) return theme.muted
-    return theme.success
+    if (props.cli.servers.length === 0) return theme.border
+    return theme.accent
   }
 
   return (
