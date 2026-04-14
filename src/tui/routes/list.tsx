@@ -49,15 +49,24 @@ export function List() {
           <text fg={theme.accent}>≡</text>
           <text fg={theme.fg}>{t.list}</text>
         </box>
-        <box flexDirection="row" gap={2}>
-          <text
-            fg={tab() === "mcp" ? theme.accent : theme.muted}
+        <box flexGrow={1} />
+        <box flexDirection="row" gap={0}>
+          <box
+            paddingLeft={2}
+            paddingRight={2}
+            backgroundColor={tab() === "mcp" ? theme.accent : theme.border}
             onMouseDown={() => setTab("mcp")}
-          >MCP</text>
-          <text
-            fg={tab() === "rules" ? theme.accent : theme.muted}
+          >
+            <text fg={tab() === "mcp" ? theme.bg : theme.muted}>MCP</text>
+          </box>
+          <box
+            paddingLeft={2}
+            paddingRight={2}
+            backgroundColor={tab() === "rules" ? theme.accent : theme.border}
             onMouseDown={() => setTab("rules")}
-          >Rules</text>
+          >
+            <text fg={tab() === "rules" ? theme.bg : theme.muted}>Rules</text>
+          </box>
         </box>
         <box flexGrow={1} />
         <text fg={theme.muted}>

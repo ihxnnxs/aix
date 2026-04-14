@@ -62,17 +62,40 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
       </Show>
       <Show when={props.mode === "rules"}>
         <Show when={props.cli.rules.length === 0}>
-          <text fg={theme.muted}>{t.noServers}</text>
+          <text fg={theme.muted}>no rules</text>
         </Show>
         <Show when={props.cli.rules.length > 0}>
           <box height={1} />
-          {props.cli.rules.map((rule) => (
-            <text fg={theme.fg}>
-              <span fg={theme.success}>● </span>
-              {rule.name}
-              <span fg={theme.muted}> ({rule.lines} lines)</span>
-            </text>
-          ))}
+          <Show when={!!state.projectRoot && (props.cli.rules.some((r) => r._scope === "global") || props.cli.rules.some((r) => r._scope === "project"))} fallback={
+            props.cli.rules.map((rule) => (
+              <text fg={theme.fg}>
+                <span fg={theme.success}>● </span>
+                {rule.name}
+                <span fg={theme.muted}> ({rule.lines} lines)</span>
+              </text>
+            ))
+          }>
+            <Show when={props.cli.rules.some((r) => r._scope === "global")}>
+              <text fg={theme.muted}>{t.global} ({props.cli.rules.filter((r) => r._scope === "global").length})</text>
+              {props.cli.rules.filter((r) => r._scope === "global").map((rule) => (
+                <text fg={theme.fg}>
+                  <span fg={theme.success}>● </span>
+                  {rule.name}
+                  <span fg={theme.muted}> ({rule.lines} lines)</span>
+                </text>
+              ))}
+            </Show>
+            <Show when={props.cli.rules.some((r) => r._scope === "project")}>
+              <text fg={theme.muted}>{t.project} ({props.cli.rules.filter((r) => r._scope === "project").length})</text>
+              {props.cli.rules.filter((r) => r._scope === "project").map((rule) => (
+                <text fg={theme.fg}>
+                  <span fg={theme.success}>● </span>
+                  {rule.name}
+                  <span fg={theme.muted}> ({rule.lines} lines)</span>
+                </text>
+              ))}
+            </Show>
+          </Show>
         </Show>
       </Show>
     </box>

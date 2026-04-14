@@ -1,4 +1,5 @@
 import { createSignal, createMemo, For, Show } from "solid-js"
+import type { RulesFile } from "../../adapters/types"
 import { useKeyboard } from "@opentui/solid"
 import { useTheme } from "../context/theme"
 import { useApp, type CLIState } from "../context/app"
@@ -24,6 +25,7 @@ export function Transfer() {
   const [toastMsg, setToastMsg] = createSignal("")
   const [toastType, setToastType] = createSignal<"success" | "error">("success")
   const [targetScope, setTargetScope] = createSignal<"global" | "project">("global")
+  const [tab, setTab] = createSignal<"mcp" | "rules">("mcp")
 
   const fromCLI = createMemo(() => installedCLIs()[fromIdx()])
   const toCLI = createMemo(() => installedCLIs()[toIdx()])
@@ -80,7 +82,60 @@ export function Transfer() {
     setToastMsg(parts.join("  "))
   }
 
+  const handleRulesTransfer = async () => {
+    const from = fromCLI()
+    const to = toCLI()
+    if (selected().size === 0 || !from || !to) return
+    setTransferring(true)
+    setToastMsg("")
+
+    const ok: string[] = []
+    const fail: Array<{ name: string; reason: string }> = []
+
+    for (const name of selected()) {
+      const rule = from.rules.find((r) => r.name === name)
+      if (!rule) { fail.push({ name, reason: "not found" }); continue }
+      try {
+        const { getAllCLIDefs } = await import("../../adapters/detector")
+        const def = getAllCLIDefs().find((d) => d.id === to.adapter.id)
+        if (!def) { fail.push({ name, reason: "unknown target" }); continue }
+
+        let targetPath: string | null = null
+        if (def.projectRulesPath && state.projectRoot) {
+          const paths = def.projectRulesPath(state.projectRoot)
+          targetPath = paths[0]
+        } else if (def.rulesPath) {
+          targetPath = def.rulesPath()[0]
+        }
+
+        if (!targetPath) { fail.push({ name, reason: "no rules path for target" }); continue }
+
+        const { existsSync } = await import("node:fs")
+        if (existsSync(targetPath)) {
+          const backup = new BackupManager()
+          await backup.create(to.adapter.id, targetPath)
+        }
+
+        await to.adapter.writeRulesFile(rule.content, targetPath)
+        ok.push(name)
+      } catch (e) {
+        fail.push({ name, reason: e instanceof Error ? e.message : "unknown error" })
+      }
+    }
+
+    setSelected(new Set())
+    setTransferring(false)
+    await actions.refresh()
+    const parts: string[] = []
+    if (ok.length > 0) parts.push(`✓ ${ok.length} transferred: ${ok.join(", ")}`)
+    for (const f of fail) parts.push(`✗ ${f.name}: ${f.reason}`)
+    setToastType(fail.length > 0 ? "error" : "success")
+    setToastMsg(parts.join("  "))
+  }
+
   useKeyboard((key: any) => {
+    if (key.name === "1") { setTab("mcp"); setCursor(0); setSelected(new Set()) }
+    if (key.name === "2") { setTab("rules"); setCursor(0); setSelected(new Set()) }
     if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
     if (matchKey(key, KEYBINDS.nextPanel)) { setPanel((p) => p === "from" ? "to" : "from"); setCursor(0) }
 
@@ -102,18 +157,18 @@ export function Transfer() {
     }
 
     if (panel() === "from" && fromCLI()) {
-      const servers = fromCLI()!.servers
+      const items = tab() === "rules" ? fromCLI()!.rules : fromCLI()!.servers
       if (matchKey(key, KEYBINDS.up)) setCursor((c) => Math.max(0, c - 1))
-      if (matchKey(key, KEYBINDS.down)) setCursor((c) => Math.min(servers.length - 1, c + 1))
-      if (matchKey(key, KEYBINDS.toggle) && servers[cursor()]) {
-        const server = servers[cursor()]
+      if (matchKey(key, KEYBINDS.down)) setCursor((c) => Math.min(items.length - 1, c + 1))
+      if (matchKey(key, KEYBINDS.toggle) && items[cursor()]) {
+        const item = items[cursor()]
         setSelected((s) => {
           const next = new Set(s)
-          if (next.has(server.name)) {
-            next.delete(server.name)
+          if (next.has(item.name)) {
+            next.delete(item.name)
           } else {
-            next.add(server.name)
-            setTargetScope(server._scope)
+            next.add(item.name)
+            if (tab() === "mcp") setTargetScope(item._scope)
           }
           return next
         })
@@ -124,7 +179,10 @@ export function Transfer() {
       setTargetScope((s) => s === "global" ? "project" : "global")
     }
 
-    if (matchKey(key, KEYBINDS.select) && selected().size > 0) handleTransfer()
+    if (matchKey(key, KEYBINDS.select) && selected().size > 0) {
+      if (tab() === "rules") handleRulesTransfer()
+      else handleTransfer()
+    }
   })
 
   return (
@@ -140,11 +198,26 @@ export function Transfer() {
           onMouseDown={() => actions.navigate("home")}
           onMouseOver={() => {}}
         >
-          <text fg={theme.muted}>⮜ {t.back}</text>
+          <text fg={theme.muted}>⮜</text>
         </box>
-        <box flexDirection="row" gap={1}>
-          <text fg={theme.accent}>⇄</text>
-          <text fg={theme.fg}>{t.transfer}</text>
+        <box flexGrow={1} justifyContent="center" flexDirection="row" />
+        <box flexDirection="row" gap={0}>
+          <box
+            paddingLeft={2}
+            paddingRight={2}
+            backgroundColor={tab() === "mcp" ? theme.accent : theme.border}
+            onMouseDown={() => { setTab("mcp"); setCursor(0); setSelected(new Set()) }}
+          >
+            <text fg={tab() === "mcp" ? theme.bg : theme.muted}>MCP</text>
+          </box>
+          <box
+            paddingLeft={2}
+            paddingRight={2}
+            backgroundColor={tab() === "rules" ? theme.accent : theme.border}
+            onMouseDown={() => { setTab("rules"); setCursor(0); setSelected(new Set()) }}
+          >
+            <text fg={tab() === "rules" ? theme.bg : theme.muted}>Rules</text>
+          </box>
         </box>
         <box flexGrow={1} />
         <Show when={selected().size > 0}>
@@ -152,129 +225,260 @@ export function Transfer() {
         </Show>
       </box>
 
-      <box flexGrow={1} flexDirection="row">
-        {/* FROM panel */}
-        <box
-          flexGrow={1}
-          border
-          borderStyle="rounded"
-          borderColor={panel() === "from" ? theme.accent : theme.border}
-          paddingLeft={1}
-          paddingRight={1}
-          flexDirection="column"
-          onMouseDown={() => setPanel("from")}
-        >
-          <text fg={theme.muted}>{t.from}</text>
-          <Show when={fromCLI()}>
-            <box flexDirection="row" gap={1}>
-              <text
-                fg={theme.muted}
-                onMouseDown={() => {
-                  const clis = installedCLIs()
-                  let next = (fromIdx() - 1 + clis.length) % clis.length
-                  if (next === toIdx()) next = (next - 1 + clis.length) % clis.length
-                  setFromIdx(next)
-                }}
-              >⮜</text>
-              <text fg={theme.fg}>{fromCLI()!.adapter.icon} {fromCLI()!.adapter.name}</text>
-              <text
-                fg={theme.muted}
-                onMouseDown={() => {
-                  const clis = installedCLIs()
-                  let next = (fromIdx() + 1) % clis.length
-                  if (next === toIdx()) next = (next + 1) % clis.length
-                  setFromIdx(next)
-                }}
-              >⮞</text>
-            </box>
-            <box height={1} />
-            <For each={fromCLI()!.servers}>
-              {(server, i) => (
-                <text
-                  fg={cursor() === i() && panel() === "from" ? theme.accent : theme.fg}
-                  onMouseDown={() => {
-                    setCursor(i())
-                    setPanel("from")
-                    const name = server.name
-                    setSelected((s) => {
-                      const next = new Set(s)
-                      next.has(name) ? next.delete(name) : next.add(name)
-                      return next
-                    })
-                  }}
-                  onMouseOver={() => { setCursor(i()); setPanel("from") }}
-                >
-                  {selected().has(server.name) ? "◉ " : "○ "}{server._scope === "project" ? "[P] " : "[G] "}{server.name}
-                </text>
-              )}
-            </For>
-          </Show>
-        </box>
-
-        {/* Arrow / Transfer button */}
-        <box width={7} alignItems="center" justifyContent="center">
+      <Show when={tab() === "mcp"}>
+        <box flexGrow={1} flexDirection="row">
+          {/* FROM panel */}
           <box
+            flexGrow={1}
             border
             borderStyle="rounded"
-            borderColor={selected().size > 0 ? theme.accent : theme.border}
+            borderColor={panel() === "from" ? theme.accent : theme.border}
             paddingLeft={1}
             paddingRight={1}
-            onMouseDown={() => { if (selected().size > 0) handleTransfer() }}
-            onMouseOver={() => {}}
+            flexDirection="column"
+            onMouseDown={() => setPanel("from")}
           >
-            <text fg={selected().size > 0 ? theme.accent : theme.muted}>{transferring() ? "..." : "►"}</text>
+            <text fg={theme.muted}>{t.from}</text>
+            <Show when={fromCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() - 1 + clis.length) % clis.length
+                    if (next === toIdx()) next = (next - 1 + clis.length) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{fromCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() + 1) % clis.length
+                    if (next === toIdx()) next = (next + 1) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <box height={1} />
+              <For each={fromCLI()!.servers}>
+                {(server, i) => (
+                  <text
+                    fg={cursor() === i() && panel() === "from" ? theme.accent : theme.fg}
+                    onMouseDown={() => {
+                      setCursor(i())
+                      setPanel("from")
+                      const name = server.name
+                      setSelected((s) => {
+                        const next = new Set(s)
+                        next.has(name) ? next.delete(name) : next.add(name)
+                        return next
+                      })
+                    }}
+                    onMouseOver={() => { setCursor(i()); setPanel("from") }}
+                  >
+                    {selected().has(server.name) ? "◉ " : "○ "}{server._scope === "project" ? "[P] " : "[G] "}{server.name}
+                  </text>
+                )}
+              </For>
+            </Show>
+          </box>
+
+          {/* Arrow / Transfer button */}
+          <box width={7} alignItems="center" justifyContent="center">
+            <box
+              border
+              borderStyle="rounded"
+              borderColor={selected().size > 0 ? theme.accent : theme.border}
+              paddingLeft={1}
+              paddingRight={1}
+              onMouseDown={() => { if (selected().size > 0) handleTransfer() }}
+              onMouseOver={() => {}}
+            >
+              <text fg={selected().size > 0 ? theme.accent : theme.muted}>{transferring() ? "..." : "►"}</text>
+            </box>
+          </box>
+
+          {/* TO panel */}
+          <box
+            flexGrow={1}
+            border
+            borderStyle="rounded"
+            borderColor={panel() === "to" ? theme.accent : theme.border}
+            paddingLeft={1}
+            paddingRight={1}
+            flexDirection="column"
+            onMouseDown={() => setPanel("to")}
+          >
+            <text fg={theme.muted}>{t.to}</text>
+            <Show when={toCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() - 1 + clis.length) % clis.length
+                    if (next === fromIdx()) next = (next - 1 + clis.length) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{toCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() + 1) % clis.length
+                    if (next === fromIdx()) next = (next + 1) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <Show when={state.projectRoot && toCLI()?.adapter.hasProjectScope}>
+                <text
+                  fg={theme.accent}
+                  onMouseDown={() => setTargetScope((s) => s === "global" ? "project" : "global")}
+                >
+                  → {targetScope()}
+                </text>
+              </Show>
+              <box height={1} />
+              <For each={toCLI()!.servers}>
+                {(server) => <text fg={theme.fg}><span fg={theme.success}>● </span>{server.name}</text>}
+              </For>
+            </Show>
           </box>
         </box>
+      </Show>
 
-        {/* TO panel */}
-        <box
-          flexGrow={1}
-          border
-          borderStyle="rounded"
-          borderColor={panel() === "to" ? theme.accent : theme.border}
-          paddingLeft={1}
-          paddingRight={1}
-          flexDirection="column"
-          onMouseDown={() => setPanel("to")}
-        >
-          <text fg={theme.muted}>{t.to}</text>
-          <Show when={toCLI()}>
-            <box flexDirection="row" gap={1}>
-              <text
-                fg={theme.muted}
-                onMouseDown={() => {
-                  const clis = installedCLIs()
-                  let next = (toIdx() - 1 + clis.length) % clis.length
-                  if (next === fromIdx()) next = (next - 1 + clis.length) % clis.length
-                  setToIdx(next)
-                }}
-              >⮜</text>
-              <text fg={theme.fg}>{toCLI()!.adapter.icon} {toCLI()!.adapter.name}</text>
-              <text
-                fg={theme.muted}
-                onMouseDown={() => {
-                  const clis = installedCLIs()
-                  let next = (toIdx() + 1) % clis.length
-                  if (next === fromIdx()) next = (next + 1) % clis.length
-                  setToIdx(next)
-                }}
-              >⮞</text>
-            </box>
-            <Show when={state.projectRoot && toCLI()?.adapter.hasProjectScope}>
-              <text
-                fg={theme.accent}
-                onMouseDown={() => setTargetScope((s) => s === "global" ? "project" : "global")}
-              >
-                → {targetScope()}
-              </text>
+      <Show when={tab() === "rules"}>
+        <box flexGrow={1} flexDirection="row">
+          {/* FROM rules panel */}
+          <box
+            flexGrow={1}
+            border
+            borderStyle="rounded"
+            borderColor={panel() === "from" ? theme.accent : theme.border}
+            paddingLeft={1}
+            paddingRight={1}
+            flexDirection="column"
+            onMouseDown={() => setPanel("from")}
+          >
+            <text fg={theme.muted}>{t.from}</text>
+            <Show when={fromCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() - 1 + clis.length) % clis.length
+                    if (next === toIdx()) next = (next - 1 + clis.length) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{fromCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() + 1) % clis.length
+                    if (next === toIdx()) next = (next + 1) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <box height={1} />
+              <Show when={fromCLI()!.rules.length > 0} fallback={<text fg={theme.muted}>no rules</text>}>
+                <For each={fromCLI()!.rules}>
+                  {(rule, i) => (
+                    <text
+                      fg={cursor() === i() && panel() === "from" ? theme.accent : theme.fg}
+                      onMouseDown={() => {
+                        setCursor(i())
+                        setPanel("from")
+                        setSelected((s) => {
+                          const next = new Set(s)
+                          next.has(rule.name) ? next.delete(rule.name) : next.add(rule.name)
+                          return next
+                        })
+                      }}
+                      onMouseOver={() => { setCursor(i()); setPanel("from") }}
+                    >
+                      {selected().has(rule.name) ? "◉ " : "○ "}
+                      <span fg={theme.muted}>{rule._scope === "project" ? "[P] " : "[G] "}</span>
+                      {rule.name}
+                      <span fg={theme.muted}> ({rule.lines} lines)</span>
+                    </text>
+                  )}
+                </For>
+              </Show>
             </Show>
-            <box height={1} />
-            <For each={toCLI()!.servers}>
-              {(server) => <text fg={theme.fg}><span fg={theme.success}>● </span>{server.name}</text>}
-            </For>
-          </Show>
+          </box>
+
+          {/* Arrow */}
+          <box width={7} alignItems="center" justifyContent="center">
+            <box
+              border
+              borderStyle="rounded"
+              borderColor={selected().size > 0 ? theme.accent : theme.border}
+              paddingLeft={1}
+              paddingRight={1}
+              onMouseDown={() => { if (selected().size > 0) handleRulesTransfer() }}
+            >
+              <text fg={selected().size > 0 ? theme.accent : theme.muted}>{transferring() ? "..." : "►"}</text>
+            </box>
+          </box>
+
+          {/* TO rules panel */}
+          <box
+            flexGrow={1}
+            border
+            borderStyle="rounded"
+            borderColor={panel() === "to" ? theme.accent : theme.border}
+            paddingLeft={1}
+            paddingRight={1}
+            flexDirection="column"
+            onMouseDown={() => setPanel("to")}
+          >
+            <text fg={theme.muted}>{t.to}</text>
+            <Show when={toCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() - 1 + clis.length) % clis.length
+                    if (next === fromIdx()) next = (next - 1 + clis.length) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{toCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() + 1) % clis.length
+                    if (next === fromIdx()) next = (next + 1) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <box height={1} />
+              <Show when={toCLI()!.rules.length > 0} fallback={<text fg={theme.muted}>no rules</text>}>
+                <For each={toCLI()!.rules}>
+                  {(rule) => (
+                    <text fg={theme.fg}>
+                      <span fg={theme.success}>● </span>
+                      {rule.name}
+                      <span fg={theme.muted}> ({rule.lines} lines)</span>
+                    </text>
+                  )}
+                </For>
+              </Show>
+            </Show>
+          </box>
         </box>
-      </box>
+      </Show>
 
       {/* Toast */}
       <Show when={toastMsg()}>
@@ -285,6 +489,8 @@ export function Transfer() {
 
       <WarningPanel warnings={warnings()} />
       <StatusBar hints={[
+        { key: "1", label: "MCP" },
+        { key: "2", label: "Rules" },
         { key: "⮜⮞", label: t.switchCli },
         { key: "space", label: t.select },
         { key: "⏎", label: t.transfer },

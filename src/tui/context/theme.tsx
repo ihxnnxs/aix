@@ -1,5 +1,6 @@
-import { createContext, useContext, createSignal } from "solid-js"
+import { createContext, useContext } from "solid-js"
 import type { ParentProps } from "solid-js"
+import { createStore, reconcile } from "solid-js/store"
 import { KVStore } from "../../config/store"
 
 export interface Theme {
@@ -89,28 +90,25 @@ export function getAllThemes(): Theme[] {
 }
 
 export function getThemeById(id: string): Theme {
-  return THEMES[id] ?? THEMES.default
+  return { ...(THEMES[id] ?? THEMES.default) }
 }
 
-const store = new KVStore()
-
-const [currentTheme, setCurrentTheme] = createSignal<Theme>(
-  getThemeById(store.get<string>("theme") ?? "default")
-)
+const kvStore = new KVStore()
+const initialTheme = getThemeById(kvStore.get<string>("theme") ?? "default")
+const [themeStore, setThemeStore] = createStore<Theme>(initialTheme)
 
 export function switchTheme(id: string): void {
   const theme = getThemeById(id)
-  setCurrentTheme(theme)
-  store.set("theme", id)
+  setThemeStore(reconcile(theme))
+  kvStore.set("theme", id)
 }
 
-const ThemeContext = createContext<() => Theme>(currentTheme)
+const ThemeContext = createContext<Theme>(themeStore)
 
 export function ThemeProvider(props: ParentProps) {
-  return <ThemeContext.Provider value={currentTheme}>{props.children}</ThemeContext.Provider>
+  return <ThemeContext.Provider value={themeStore}>{props.children}</ThemeContext.Provider>
 }
 
 export function useTheme(): Theme {
-  const getter = useContext(ThemeContext)!
-  return getter()
+  return useContext(ThemeContext)!
 }
