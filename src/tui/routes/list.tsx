@@ -1,4 +1,4 @@
-import { createMemo } from "solid-js"
+import { createMemo, createSignal } from "solid-js"
 import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
 import { useTheme } from "../context/theme"
 import { useApp } from "../context/app"
@@ -12,16 +12,20 @@ export function List() {
   const [state, actions] = useApp()
   const t = getStrings()
   const dims = useTerminalDimensions()
+  const [tab, setTab] = createSignal<"mcp" | "rules">("mcp")
 
   const stats = createMemo(() => {
     const installed = state.clis.filter((c) => c.detection.installed).length
     const totalMcp = state.clis.reduce((sum, c) => sum + c.servers.length, 0)
-    return { installed, totalMcp }
+    const totalRules = state.clis.reduce((sum, c) => sum + c.rules.length, 0)
+    return { installed, totalMcp, totalRules }
   })
 
   const cardWidth = createMemo(() => Math.floor((dims().width - 4) / 2) - 1)
 
   useKeyboard((key: any) => {
+    if (key.name === "1") setTab("mcp")
+    if (key.name === "2") setTab("rules")
     if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
     if (key.name === "t") actions.navigate("transfer")
   })
@@ -45,16 +49,30 @@ export function List() {
           <text fg={theme.accent}>≡</text>
           <text fg={theme.fg}>{t.list}</text>
         </box>
+        <box flexDirection="row" gap={2}>
+          <text
+            fg={tab() === "mcp" ? theme.accent : theme.muted}
+            onMouseDown={() => setTab("mcp")}
+          >MCP</text>
+          <text
+            fg={tab() === "rules" ? theme.accent : theme.muted}
+            onMouseDown={() => setTab("rules")}
+          >Rules</text>
+        </box>
         <box flexGrow={1} />
-        <text fg={theme.muted}>{stats().installed} CLI · {stats().totalMcp} MCP</text>
+        <text fg={theme.muted}>
+          {stats().installed} CLI · {tab() === "mcp" ? `${stats().totalMcp} MCP` : `${stats().totalRules} rules`}
+        </text>
       </box>
 
       {/* Cards */}
       <box flexGrow={1} flexDirection="row" flexWrap="wrap" gap={1} padding={1}>
-        {state.clis.filter((cli) => cli.detection.installed).map((cli) => <CLICard cli={cli} width={cardWidth()} />)}
+        {state.clis.filter((cli) => cli.detection.installed).map((cli) => <CLICard cli={cli} width={cardWidth()} mode={tab()} />)}
       </box>
 
       <StatusBar hints={[
+        { key: "1", label: "MCP" },
+        { key: "2", label: "Rules" },
         { key: "t", label: t.transfer },
         { key: "esc", label: t.back },
         { key: "q", label: t.quit },

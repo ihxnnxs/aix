@@ -5,7 +5,7 @@ import { useApp } from "../context/app"
 import type { CLIState } from "../context/app"
 import { getStrings } from "../i18n"
 
-export function CLICard(props: { cli: CLIState; width?: number }) {
+export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "rules" }) {
   const theme = useTheme()
   const [state] = useApp()
   const t = getStrings()
@@ -16,6 +16,7 @@ export function CLICard(props: { cli: CLIState; width?: number }) {
 
   const borderColor = () => {
     if (!props.cli.detection.installed) return theme.border
+    if (props.mode === "rules") return props.cli.rules.length > 0 ? theme.accent : theme.border
     if (props.cli.servers.length === 0) return theme.border
     return theme.accent
   }
@@ -39,22 +40,39 @@ export function CLICard(props: { cli: CLIState; width?: number }) {
       <Show when={!props.cli.detection.installed}>
         <text fg={theme.muted}>{t.notFound}</text>
       </Show>
-      <Show when={props.cli.detection.installed && props.cli.servers.length === 0}>
-        <text fg={theme.muted}>{t.noServers}</text>
+      <Show when={props.mode !== "rules"}>
+        <Show when={props.cli.detection.installed && props.cli.servers.length === 0}>
+          <text fg={theme.muted}>{t.noServers}</text>
+        </Show>
+        <Show when={props.cli.detection.installed && props.cli.servers.length > 0}>
+          <box height={1} />
+          <Show when={showGroups()} fallback={
+            <For each={props.cli.servers}>{(server) => <MCPItem server={server} />}</For>
+          }>
+            <Show when={globalServers().length > 0}>
+              <text fg={theme.muted}>{t.global} ({globalServers().length})</text>
+              <For each={globalServers()}>{(server) => <MCPItem server={server} />}</For>
+            </Show>
+            <Show when={projectServers().length > 0}>
+              <text fg={theme.muted}>{t.project} ({projectServers().length})</text>
+              <For each={projectServers()}>{(server) => <MCPItem server={server} />}</For>
+            </Show>
+          </Show>
+        </Show>
       </Show>
-      <Show when={props.cli.detection.installed && props.cli.servers.length > 0}>
-        <box height={1} />
-        <Show when={showGroups()} fallback={
-          <For each={props.cli.servers}>{(server) => <MCPItem server={server} />}</For>
-        }>
-          <Show when={globalServers().length > 0}>
-            <text fg={theme.muted}>{t.global} ({globalServers().length})</text>
-            <For each={globalServers()}>{(server) => <MCPItem server={server} />}</For>
-          </Show>
-          <Show when={projectServers().length > 0}>
-            <text fg={theme.muted}>{t.project} ({projectServers().length})</text>
-            <For each={projectServers()}>{(server) => <MCPItem server={server} />}</For>
-          </Show>
+      <Show when={props.mode === "rules"}>
+        <Show when={props.cli.rules.length === 0}>
+          <text fg={theme.muted}>{t.noServers}</text>
+        </Show>
+        <Show when={props.cli.rules.length > 0}>
+          <box height={1} />
+          {props.cli.rules.map((rule) => (
+            <text fg={theme.fg}>
+              <span fg={theme.success}>● </span>
+              {rule.name}
+              <span fg={theme.muted}> ({rule.lines} lines)</span>
+            </text>
+          ))}
         </Show>
       </Show>
     </box>
