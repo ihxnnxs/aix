@@ -16,6 +16,7 @@ const ASCII_LOGO = [
 const MENU_ITEMS = [
   { id: "transfer" as const, label: "Transfer", icon: "⇄" },
   { id: "list" as const, label: "List", icon: "≡" },
+  { id: "settings" as const, label: "Settings", icon: "⚙" },
 ]
 
 const SOCIAL_LINKS = [
@@ -29,13 +30,35 @@ export function Home() {
   const [selected, setSelected] = createSignal(0)
   const [showTooltip, setShowTooltip] = createSignal(false)
   const [updateInfo, setUpdateInfo] = createSignal<UpdateInfo | null>(null)
+  const [showUpdate, setShowUpdate] = createSignal(false)
+  const [updateBtn, setUpdateBtn] = createSignal(0) // 0 = Update, 1 = Later
 
   onMount(async () => {
     const info = await checkForUpdate()
-    setUpdateInfo(info)
+    if (info) {
+      setUpdateInfo(info)
+      setShowUpdate(true)
+    }
   })
 
   useKeyboard((key: any) => {
+    if (showUpdate()) {
+      if (matchKey(key, KEYBINDS.left) || matchKey(key, KEYBINDS.right)) {
+        setUpdateBtn((b) => b === 0 ? 1 : 0)
+      }
+      if (matchKey(key, KEYBINDS.select)) {
+        if (updateBtn() === 0) {
+          Bun.spawn(["bash", "-c", "curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash"], { stdio: ["inherit", "inherit", "inherit"] })
+          process.exit(0)
+        } else {
+          setShowUpdate(false)
+        }
+      }
+      if (matchKey(key, KEYBINDS.back)) {
+        setShowUpdate(false)
+      }
+      return
+    }
     if (matchKey(key, KEYBINDS.up)) setSelected((s) => Math.max(0, s - 1))
     if (matchKey(key, KEYBINDS.down)) setSelected((s) => Math.min(MENU_ITEMS.length - 1, s + 1))
     if (matchKey(key, KEYBINDS.select)) actions.navigate(MENU_ITEMS[selected()].id)
@@ -47,13 +70,6 @@ export function Home() {
       <box width="100%" height={1} flexDirection="row" justifyContent="flex-end" paddingRight={1}>
         <text fg={theme.border}>v{VERSION}</text>
       </box>
-      <Show when={updateInfo()}>
-        <box width="100%" height={1} justifyContent="center">
-          <text fg={theme.accent}>
-            Update available: v{updateInfo()!.current} → v{updateInfo()!.latest}  run: curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
-          </text>
-        </box>
-      </Show>
       <box flexGrow={1} alignItems="center" justifyContent="center" flexDirection="column">
         {/* ASCII Logo */}
         {ASCII_LOGO.map((line) => (
@@ -139,6 +155,63 @@ export function Home() {
           @ihxnnxs
         </text>
       </box>
+
+      {/* Update modal */}
+      <Show when={showUpdate() && updateInfo()}>
+        <box
+          position="absolute"
+          width="100%"
+          height="100%"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <box
+            width={44}
+            border
+            borderStyle="rounded"
+            borderColor={theme.accent}
+            flexDirection="column"
+            alignItems="center"
+            paddingLeft={2}
+            paddingRight={2}
+            paddingTop={1}
+            paddingBottom={1}
+            backgroundColor={theme.bg}
+          >
+            <text fg={theme.accent}>Update Available</text>
+            <box height={1} />
+            <text fg={theme.fg}>v{updateInfo()!.current} → v{updateInfo()!.latest}</text>
+            <box height={1} />
+            <box flexDirection="row" gap={2}>
+              <box
+                border
+                borderStyle="rounded"
+                borderColor={updateBtn() === 0 ? theme.accent : theme.border}
+                paddingLeft={2}
+                paddingRight={2}
+                onMouseDown={() => {
+                  Bun.spawn(["bash", "-c", "curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash"], { stdio: ["inherit", "inherit", "inherit"] })
+                  process.exit(0)
+                }}
+                onMouseOver={() => setUpdateBtn(0)}
+              >
+                <text fg={updateBtn() === 0 ? theme.accent : theme.muted}>Update</text>
+              </box>
+              <box
+                border
+                borderStyle="rounded"
+                borderColor={updateBtn() === 1 ? theme.accent : theme.border}
+                paddingLeft={2}
+                paddingRight={2}
+                onMouseDown={() => setShowUpdate(false)}
+                onMouseOver={() => setUpdateBtn(1)}
+              >
+                <text fg={updateBtn() === 1 ? theme.accent : theme.muted}>Later</text>
+              </box>
+            </box>
+          </box>
+        </box>
+      </Show>
     </box>
   )
 }
