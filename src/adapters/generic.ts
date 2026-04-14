@@ -1,6 +1,6 @@
 import * as jsonc from "jsonc-parser"
 import { existsSync } from "node:fs"
-import type { Adapter, AdapterCapabilities, DetectResult, MCPServer } from "./types"
+import type { Adapter, AdapterCapabilities, DetectResult, MCPServer, RulesFile } from "./types"
 import { createMCPServer } from "./types"
 import type { CLIDef } from "./detector"
 
@@ -83,6 +83,75 @@ export class GenericMCPAdapter implements Adapter {
     const edits = jsonc.modify(text, keys, undefined, {})
     const updated = jsonc.applyEdits(text, edits)
     await Bun.write(path, updated)
+  }
+
+  async getRulesFiles(scope: "global" | "project" | "all" = "all"): Promise<RulesFile[]> {
+    const files: RulesFile[] = []
+    if (scope === "global" || scope === "all") {
+      files.push(...await this.scanRules("global"))
+    }
+    if (scope === "project" || scope === "all") {
+      files.push(...await this.scanRules("project"))
+    }
+    return files
+  }
+
+  async writeRulesFile(content: string, targetPath: string): Promise<void> {
+    const { mkdirSync } = await import("node:fs")
+    const { dirname } = await import("node:path")
+    mkdirSync(dirname(targetPath), { recursive: true })
+    await Bun.write(targetPath, content)
+  }
+
+  private async scanRules(scope: "global" | "project"): Promise<RulesFile[]> {
+    const paths = scope === "global"
+      ? this.def.rulesPath?.() ?? []
+      : (this.projectRoot && this.def.projectRulesPath)
+        ? this.def.projectRulesPath(this.projectRoot)
+        : []
+
+    const files: RulesFile[] = []
+    const { existsSync, readdirSync, statSync } = await import("node:fs")
+    const { join, basename } = await import("node:path")
+
+    for (const p of paths) {
+      if (!existsSync(p)) continue
+
+      const stat = statSync(p)
+      if (stat.isDirectory()) {
+        // Scan directory for .md/.mdc files
+        try {
+          const entries = readdirSync(p)
+          for (const entry of entries) {
+            if (!entry.endsWith(".md") && !entry.endsWith(".mdc")) continue
+            const filePath = join(p, entry)
+            const content = await Bun.file(filePath).text()
+            files.push({
+              name: entry,
+              path: filePath,
+              content,
+              lines: content.split("\n").length,
+              _source: this.id,
+              _scope: scope,
+            })
+          }
+        } catch {}
+      } else {
+        // Single file
+        try {
+          const content = await Bun.file(p).text()
+          files.push({
+            name: basename(p),
+            path: p,
+            content,
+            lines: content.split("\n").length,
+            _source: this.id,
+            _scope: scope,
+          })
+        } catch {}
+      }
+    }
+    return files
   }
 
   private async readServers(scope: "global" | "project"): Promise<MCPServer[]> {
