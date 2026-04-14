@@ -49,8 +49,12 @@ export function createMCPServer(
   return {
     name,
     transport,
-    command: typeof raw.command === "string" ? raw.command : undefined,
-    args: Array.isArray(raw.args) ? raw.args : undefined,
+    command: typeof raw.command === "string"
+      ? raw.command
+      : Array.isArray(raw.command) ? raw.command[0] : undefined,
+    args: Array.isArray(raw.args)
+      ? raw.args
+      : Array.isArray(raw.command) ? raw.command.slice(1) : undefined,
     env: raw.env as Record<string, string> | undefined,
     url: typeof raw.url === "string" ? raw.url : undefined,
     headers: raw.headers as Record<string, string> | undefined,
