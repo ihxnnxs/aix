@@ -1,6 +1,6 @@
 {
   "name": "@ihxnnxs/aix",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "type": "module",
   "bin": {
     "aix": "./bin/aix"
