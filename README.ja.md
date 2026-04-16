@@ -20,7 +20,7 @@
 
 ---
 
-インタラクティブなTUIを通じて、AIコーディングツール間でMCPサーバー設定を転送します。グローバルおよびプロジェクトスコープの設定をサポートする16のツールに対応。
+インタラクティブなTUIを通じて、AIコーディングツール間でMCPサーバー設定を転送します。グローバルおよびプロジェクトスコープの設定をサポートする21のツールに対応。
 
 ## インストール
 
@@ -57,6 +57,11 @@ aix doctor       # ツール検出の診断
 | Goose | ✓ | | ✓ `.goosehints` |
 | Crush | ✓ | ✓ | ✓ `AGENTS.md` |
 | Eigent | ✓ | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` |
 
 ## 機能
 

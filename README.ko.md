@@ -20,7 +20,7 @@
 
 ---
 
-인터랙티브 TUI를 통해 AI 코딩 도구 간에 MCP 서버 설정을 전송합니다. 글로벌 및 프로젝트 범위 설정을 지원하는 16개 도구를 지원합니다.
+인터랙티브 TUI를 통해 AI 코딩 도구 간에 MCP 서버 설정을 전송합니다. 글로벌 및 프로젝트 범위 설정을 지원하는 21개 도구를 지원합니다.
 
 ## 설치
 
@@ -57,6 +57,11 @@ aix doctor       # 도구 감지 진단
 | Goose | ✓ | | ✓ `.goosehints` |
 | Crush | ✓ | ✓ | ✓ `AGENTS.md` |
 | Eigent | ✓ | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` |
 
 ## 기능
 

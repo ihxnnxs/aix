@@ -20,6 +20,16 @@ export interface RulesFile {
   _scope: "global" | "project"
 }
 
+export interface SkillFile {
+  name: string
+  path: string
+  content: string
+  lines: number
+  description?: string
+  _source: string
+  _scope: "global" | "project"
+}
+
 export interface DetectResult {
   installed: boolean
   configPath: string | null
@@ -46,6 +56,8 @@ export interface Adapter {
   removeMCPServer(name: string): Promise<void>
   getRulesFiles(scope?: "global" | "project" | "all"): Promise<RulesFile[]>
   writeRulesFile(content: string, targetPath: string): Promise<void>
+  getSkillFiles(scope?: "global" | "project" | "all"): Promise<SkillFile[]>
+  writeSkillFile(content: string, targetPath: string): Promise<void>
 }
 
 export function createMCPServer(

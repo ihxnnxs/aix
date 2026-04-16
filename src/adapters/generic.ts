@@ -1,6 +1,7 @@
 import * as jsonc from "jsonc-parser"
+import * as TOML from "smol-toml"
 import { existsSync } from "node:fs"
-import type { Adapter, AdapterCapabilities, DetectResult, MCPServer, RulesFile } from "./types"
+import type { Adapter, AdapterCapabilities, DetectResult, MCPServer, RulesFile, SkillFile } from "./types"
 import { createMCPServer } from "./types"
 import type { CLIDef } from "./detector"
 
@@ -66,11 +67,25 @@ export class GenericMCPAdapter implements Adapter {
     const path = this.getWritePath(scope)
     if (!path) throw new Error(`${this.name} does not support ${scope} scope`)
     const keyPath = this.getServerKey(scope)
-    let text = await this.readFile(path) ?? "{}"
-    const keys = [...keyPath.split("."), server.name]
-    const edits = jsonc.modify(text, keys, server._raw, {})
-    text = jsonc.applyEdits(text, edits)
-    await Bun.write(path, text)
+
+    if (this.def.configFormat === "toml") {
+      let text = await this.readFile(path) ?? ""
+      const parsed = text ? TOML.parse(text) : {} as any
+      const keys = keyPath.split(".")
+      let obj: any = parsed
+      for (const k of keys) {
+        obj[k] = obj[k] ?? {}
+        obj = obj[k]
+      }
+      obj[server.name] = server._raw
+      await Bun.write(path, TOML.stringify(parsed))
+    } else {
+      let text = await this.readFile(path) ?? "{}"
+      const keys = [...keyPath.split("."), server.name]
+      const edits = jsonc.modify(text, keys, server._raw, {})
+      text = jsonc.applyEdits(text, edits)
+      await Bun.write(path, text)
+    }
   }
 
   async removeMCPServer(name: string, scope: "global" | "project" = "global"): Promise<void> {
@@ -79,10 +94,22 @@ export class GenericMCPAdapter implements Adapter {
     const text = await this.readFile(path)
     if (!text) return
     const keyPath = this.getServerKey(scope)
-    const keys = [...keyPath.split("."), name]
-    const edits = jsonc.modify(text, keys, undefined, {})
-    const updated = jsonc.applyEdits(text, edits)
-    await Bun.write(path, updated)
+
+    if (this.def.configFormat === "toml") {
+      const parsed = TOML.parse(text) as any
+      const keys = keyPath.split(".")
+      let obj: any = parsed
+      for (const k of keys) {
+        obj = obj?.[k]
+      }
+      if (obj) delete obj[name]
+      await Bun.write(path, TOML.stringify(parsed))
+    } else {
+      const keys = [...keyPath.split("."), name]
+      const edits = jsonc.modify(text, keys, undefined, {})
+      const updated = jsonc.applyEdits(text, edits)
+      await Bun.write(path, updated)
+    }
   }
 
   async getRulesFiles(scope: "global" | "project" | "all" = "all"): Promise<RulesFile[]> {
@@ -94,6 +121,24 @@ export class GenericMCPAdapter implements Adapter {
       files.push(...await this.scanRules("project"))
     }
     return files
+  }
+
+  async getSkillFiles(scope: "global" | "project" | "all" = "all"): Promise<SkillFile[]> {
+    const files: SkillFile[] = []
+    if (scope === "global" || scope === "all") {
+      files.push(...await this.scanSkills("global"))
+    }
+    if (scope === "project" || scope === "all") {
+      files.push(...await this.scanSkills("project"))
+    }
+    return files
+  }
+
+  async writeSkillFile(content: string, targetPath: string): Promise<void> {
+    const { mkdirSync } = await import("node:fs")
+    const { dirname } = await import("node:path")
+    mkdirSync(dirname(targetPath), { recursive: true })
+    await Bun.write(targetPath, content)
   }
 
   async writeRulesFile(content: string, targetPath: string): Promise<void> {
@@ -154,12 +199,97 @@ export class GenericMCPAdapter implements Adapter {
     return files
   }
 
+  private async scanSkills(scope: "global" | "project"): Promise<SkillFile[]> {
+    const paths = scope === "global"
+      ? this.def.skillsPath?.() ?? []
+      : (this.projectRoot && this.def.projectSkillsPath)
+        ? this.def.projectSkillsPath(this.projectRoot)
+        : []
+
+    const files: SkillFile[] = []
+    const { existsSync, readdirSync, statSync, readlinkSync } = await import("node:fs")
+    const { join, resolve, dirname } = await import("node:path")
+
+    for (const p of paths) {
+      if (!existsSync(p)) continue
+
+      const stat = statSync(p)
+      if (!stat.isDirectory()) continue
+
+      try {
+        const entries = readdirSync(p)
+        for (const entry of entries) {
+          const entryPath = join(p, entry)
+          let resolvedPath = entryPath
+
+          // Resolve symlinks
+          try {
+            const lstat = statSync(entryPath, { throwIfNoEntry: false } as any)
+            if (!lstat) continue
+            const realStat = statSync(entryPath)
+            if (realStat.isSymbolicLink?.() || statSync(entryPath).isDirectory()) {
+              // Check for SKILL.md inside directory
+              const skillFile = join(entryPath, "SKILL.md")
+              if (existsSync(skillFile)) {
+                const content = await Bun.file(skillFile).text()
+                const description = this.parseSkillDescription(content)
+                files.push({
+                  name: entry,
+                  path: skillFile,
+                  content,
+                  lines: content.split("\n").length,
+                  description,
+                  _source: this.id,
+                  _scope: scope,
+                })
+                continue
+              }
+            }
+          } catch {}
+
+          // Fallback: direct .md/.mdc files
+          if (entry.endsWith(".md") || entry.endsWith(".mdc")) {
+            try {
+              const content = await Bun.file(entryPath).text()
+              const description = this.parseSkillDescription(content)
+              files.push({
+                name: entry,
+                path: entryPath,
+                content,
+                lines: content.split("\n").length,
+                description,
+                _source: this.id,
+                _scope: scope,
+              })
+            } catch {}
+          }
+        }
+      } catch {}
+    }
+    return files
+  }
+
+  private parseSkillDescription(content: string): string | undefined {
+    const match = content.match(/^---\s*\n([\s\S]*?)\n---/)
+    if (!match) return undefined
+    const frontmatter = match[1]
+    const descLine = frontmatter.match(/^description:\s*(.+)$/m)
+    const raw = descLine?.[1]?.trim()
+    if (!raw) return undefined
+    return raw.replace(/^["']|["']$/g, "")
+  }
+
+  private parseConfig(text: string): any {
+    if (this.def.configFormat === "toml") return TOML.parse(text)
+    return jsonc.parse(text)
+  }
+
   private async readServers(scope: "global" | "project"): Promise<MCPServer[]> {
     const path = scope === "global" ? this.globalConfigPath : this.projectConfigPath
     if (!path) return []
     const text = await this.readFile(path)
     if (!text) return []
-    const parsed = jsonc.parse(text)
+    const parsed = this.parseConfig(text)
     const keyPath = this.getServerKey(scope)
     const keys = keyPath.split(".")
     let obj: any = parsed

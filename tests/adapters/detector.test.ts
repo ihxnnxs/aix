@@ -56,7 +56,7 @@ describe("getCLIDef", () => {
 describe("getAllCLIDefs", () => {
   test("returns all CLI definitions", () => {
     const defs = getAllCLIDefs()
-    expect(defs.length).toBe(16)
+    expect(defs.length).toBe(21)
     const ids = defs.map((d) => d.id)
     expect(ids).toContain("claude-code")
     expect(ids).toContain("claude-desktop")

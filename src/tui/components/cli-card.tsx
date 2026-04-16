@@ -5,7 +5,7 @@ import { useApp } from "../context/app"
 import type { CLIState } from "../context/app"
 import { getStrings } from "../i18n"
 
-export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "rules" }) {
+export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "rules" | "skills" }) {
   const theme = useTheme()
   const [state] = useApp()
   const t = getStrings()
@@ -17,6 +17,7 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
   const borderColor = () => {
     if (!props.cli.detection.installed) return theme.border
     if (props.mode === "rules") return props.cli.rules.length > 0 ? theme.accent : theme.border
+    if (props.mode === "skills") return props.cli.skills.length > 0 ? theme.accent : theme.border
     if (props.cli.servers.length === 0) return theme.border
     return theme.accent
   }
@@ -40,7 +41,7 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
       <Show when={!props.cli.detection.installed}>
         <text fg={theme.muted}>{t.notFound}</text>
       </Show>
-      <Show when={props.mode !== "rules"}>
+      <Show when={props.mode !== "rules" && props.mode !== "skills"}>
         <Show when={props.cli.detection.installed && props.cli.servers.length === 0}>
           <text fg={theme.muted}>{t.noServers}</text>
         </Show>
@@ -92,6 +93,44 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
                   <span fg={theme.success}>● </span>
                   {rule.name}
                   <span fg={theme.muted}> ({rule.lines} lines)</span>
+                </text>
+              ))}
+            </Show>
+          </Show>
+        </Show>
+      </Show>
+      <Show when={props.mode === "skills"}>
+        <Show when={props.cli.skills.length === 0}>
+          <text fg={theme.muted}>no skills</text>
+        </Show>
+        <Show when={props.cli.skills.length > 0}>
+          <box height={1} />
+          <Show when={!!state.projectRoot && (props.cli.skills.some((s) => s._scope === "global") || props.cli.skills.some((s) => s._scope === "project"))} fallback={
+            props.cli.skills.map((skill) => (
+              <text fg={theme.fg}>
+                <span fg={theme.success}>● </span>
+                {skill.name}
+                <span fg={theme.muted}>{skill.description ? ` — ${skill.description}` : ` (${skill.lines} lines)`}</span>
+              </text>
+            ))
+          }>
+            <Show when={props.cli.skills.some((s) => s._scope === "global")}>
+              <text fg={theme.muted}>{t.global} ({props.cli.skills.filter((s) => s._scope === "global").length})</text>
+              {props.cli.skills.filter((s) => s._scope === "global").map((skill) => (
+                <text fg={theme.fg}>
+                  <span fg={theme.success}>● </span>
+                  {skill.name}
+                  <span fg={theme.muted}>{skill.description ? ` — ${skill.description}` : ` (${skill.lines} lines)`}</span>
+                </text>
+              ))}
+            </Show>
+            <Show when={props.cli.skills.some((s) => s._scope === "project")}>
+              <text fg={theme.muted}>{t.project} ({props.cli.skills.filter((s) => s._scope === "project").length})</text>
+              {props.cli.skills.filter((s) => s._scope === "project").map((skill) => (
+                <text fg={theme.fg}>
+                  <span fg={theme.success}>● </span>
+                  {skill.name}
+                  <span fg={theme.muted}>{skill.description ? ` — ${skill.description}` : ` (${skill.lines} lines)`}</span>
                 </text>
               ))}
             </Show>

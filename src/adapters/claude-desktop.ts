@@ -1,6 +1,6 @@
 import * as jsonc from "jsonc-parser"
 import { existsSync } from "node:fs"
-import type { Adapter, AdapterCapabilities, DetectResult, MCPServer } from "./types"
+import type { Adapter, AdapterCapabilities, DetectResult, MCPServer, RulesFile, SkillFile } from "./types"
 import { createMCPServer } from "./types"
 import { getConfigPaths } from "./detector"
 
@@ -8,6 +8,7 @@ export class ClaudeDesktopAdapter implements Adapter {
   id = "claude-desktop"
   name = "Claude Desktop"
   icon = "CD"
+  hasProjectScope = false
   capabilities: AdapterCapabilities = {
     mcp: true,
     skills: false,
@@ -57,6 +58,11 @@ export class ClaudeDesktopAdapter implements Adapter {
     const updated = jsonc.applyEdits(text, edits)
     await Bun.write(this.configPath, updated)
   }
+
+  async getRulesFiles(): Promise<RulesFile[]> { return [] }
+  async writeRulesFile(): Promise<void> {}
+  async getSkillFiles(): Promise<SkillFile[]> { return [] }
+  async writeSkillFile(): Promise<void> {}
 
   private async readConfig(): Promise<string | null> {
     const file = Bun.file(this.configPath)

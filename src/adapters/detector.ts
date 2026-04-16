@@ -9,10 +9,13 @@ export interface CLIDef {
   icon: string
   paths: () => string[]
   serverKey?: string // dot-separated JSON path, default "mcpServers"
+  configFormat?: "json" | "toml" // default "json"
   projectPaths?: (root: string) => string[]
   projectServerKey?: string
   rulesPath?: () => string[]
   projectRulesPath?: (root: string) => string[]
+  skillsPath?: () => string[]
+  projectSkillsPath?: (root: string) => string[]
 }
 
 const home = homedir()
@@ -41,6 +44,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectPaths: (root) => [join(root, ".mcp.json")],
     rulesPath: () => [join(home, ".claude", "CLAUDE.md")],
     projectRulesPath: (root) => [join(root, "CLAUDE.md")],
+    skillsPath: () => [join(home, ".claude", "skills")],
+    projectSkillsPath: (root) => [join(root, ".claude", "skills")],
   },
   "claude-desktop": {
     id: "claude-desktop",
@@ -55,6 +60,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     paths: () => [join(home, ".cursor", "mcp.json")],
     projectPaths: (root) => [join(root, ".cursor", "mcp.json")],
     projectRulesPath: (root) => [join(root, ".cursorrules"), join(root, ".cursor", "rules")],
+    skillsPath: () => [join(home, ".cursor", "skills")],
+    projectSkillsPath: (root) => [join(root, ".cursor", "skills")],
   },
   vscode: {
     id: "vscode",
@@ -122,6 +129,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectPaths: (root) => [join(root, "opencode.json")],
     projectServerKey: "mcp",
     projectRulesPath: (root) => [join(root, "AGENTS.md")],
+    skillsPath: () => [join(appDataDir(), "opencode", "skill")],
+    projectSkillsPath: (root) => [join(root, ".opencode", "skill")],
   },
   "qwen-code": {
     id: "qwen-code",
@@ -134,6 +143,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectPaths: (root) => [join(root, ".qwen", "settings.json")],
     rulesPath: () => [join(home, ".qwen", "AGENTS.md")],
     projectRulesPath: (root) => [join(root, "AGENTS.md")],
+    skillsPath: () => [join(home, ".qwen", "skills")],
+    projectSkillsPath: (root) => [join(root, ".qwen", "skills")],
   },
   "claude-ide": {
     id: "claude-ide",
@@ -182,6 +193,61 @@ const CLI_DEFS: Record<string, CLIDef> = {
       join(appDataDir(), "Eigent", "mcp.json"),
       join(home, ".eigent", "mcp.json"),
     ],
+  },
+  "gemini-cli": {
+    id: "gemini-cli",
+    name: "Gemini CLI",
+    icon: "Ge",
+    paths: () => [join(home, ".gemini", "settings.json")],
+    serverKey: "mcpServers",
+    projectPaths: (root) => [join(root, ".gemini", "settings.json")],
+    projectServerKey: "mcpServers",
+    rulesPath: () => [join(home, ".gemini", "GEMINI.md")],
+    projectRulesPath: (root) => [join(root, "GEMINI.md")],
+    skillsPath: () => [join(home, ".gemini", "skills")],
+    projectSkillsPath: (root) => [join(root, ".gemini", "skills")],
+  },
+  "amazon-q": {
+    id: "amazon-q",
+    name: "Amazon Q",
+    icon: "AQ",
+    paths: () => [join(home, ".aws", "amazonq", "mcp.json")],
+    projectPaths: (root) => [join(root, ".amazonq", "mcp.json")],
+    projectRulesPath: (root) => [join(root, ".amazonq", "rules")],
+  },
+  amp: {
+    id: "amp",
+    name: "Amp",
+    icon: "Am",
+    paths: () => [join(appDataDir(), "amp", "settings.json")],
+    serverKey: "mcpServers",
+    projectPaths: (root) => [join(root, ".amp", "settings.json")],
+    projectServerKey: "mcpServers",
+    rulesPath: () => [join(home, ".amp", "AGENT.md")],
+    projectRulesPath: (root) => [join(root, "AGENT.md"), join(root, "AGENTS.md")],
+    skillsPath: () => [join(home, ".amp", "skills")],
+    projectSkillsPath: (root) => [join(root, ".amp", "skills")],
+  },
+  "codex-cli": {
+    id: "codex-cli",
+    name: "Codex CLI",
+    icon: "Cx",
+    paths: () => [join(appDataDir(), "codex", "config.toml"), join(home, ".codex", "config.toml")],
+    serverKey: "mcp_servers",
+    configFormat: "toml",
+    projectPaths: (root) => [join(root, ".codex", "config.toml")],
+    projectServerKey: "mcp_servers",
+    rulesPath: () => [join(home, ".codex", "AGENTS.md")],
+    projectRulesPath: (root) => [join(root, "AGENTS.md")],
+    skillsPath: () => [join(home, ".codex", "skills")],
+    projectSkillsPath: (root) => [join(root, ".codex", "skills")],
+  },
+  "copilot-cli": {
+    id: "copilot-cli",
+    name: "Copilot CLI",
+    icon: "GH",
+    paths: () => [join(home, ".copilot", "mcp-config.json")],
+    projectRulesPath: (root) => [join(root, ".github", "copilot-instructions.md")],
   },
 }
 

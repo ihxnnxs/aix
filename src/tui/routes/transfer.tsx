@@ -1,6 +1,6 @@
 import { createSignal, createMemo, For, Show } from "solid-js"
-import type { RulesFile } from "../../adapters/types"
-import { useKeyboard } from "@opentui/solid"
+import type { RulesFile, SkillFile } from "../../adapters/types"
+import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
 import { useTheme } from "../context/theme"
 import { useApp, type CLIState } from "../context/app"
 import { KEYBINDS, matchKey } from "../context/keybind"
@@ -25,7 +25,9 @@ export function Transfer() {
   const [toastMsg, setToastMsg] = createSignal("")
   const [toastType, setToastType] = createSignal<"success" | "error">("success")
   const [targetScope, setTargetScope] = createSignal<"global" | "project">("global")
-  const [tab, setTab] = createSignal<"mcp" | "rules">("mcp")
+  const [tab, setTab] = createSignal<"mcp" | "rules" | "skills">("mcp")
+  const dims = useTerminalDimensions()
+  const visibleRows = createMemo(() => Math.max(5, dims().height - 10))
 
   const fromCLI = createMemo(() => installedCLIs()[fromIdx()])
   const toCLI = createMemo(() => installedCLIs()[toIdx()])
@@ -133,9 +135,63 @@ export function Transfer() {
     setToastMsg(parts.join("  "))
   }
 
+  const handleSkillsTransfer = async () => {
+    const from = fromCLI()
+    const to = toCLI()
+    if (selected().size === 0 || !from || !to) return
+    setTransferring(true)
+    setToastMsg("")
+
+    const ok: string[] = []
+    const fail: Array<{ name: string; reason: string }> = []
+
+    for (const name of selected()) {
+      const skill = from.skills.find((s) => s.name === name)
+      if (!skill) { fail.push({ name, reason: "not found" }); continue }
+      try {
+        const { getAllCLIDefs } = await import("../../adapters/detector")
+        const def = getAllCLIDefs().find((d) => d.id === to.adapter.id)
+        if (!def) { fail.push({ name, reason: "unknown target" }); continue }
+
+        let targetDir: string | null = null
+        if (def.projectSkillsPath && state.projectRoot) {
+          targetDir = def.projectSkillsPath(state.projectRoot)[0]
+        } else if (def.skillsPath) {
+          targetDir = def.skillsPath()[0]
+        }
+
+        if (!targetDir) { fail.push({ name, reason: "no skills path for target" }); continue }
+
+        const { join } = await import("node:path")
+        const targetPath = join(targetDir, skill.name, "SKILL.md")
+
+        const { existsSync } = await import("node:fs")
+        if (existsSync(targetPath)) {
+          const backup = new BackupManager()
+          await backup.create(to.adapter.id, targetPath)
+        }
+
+        await to.adapter.writeSkillFile(skill.content, targetPath)
+        ok.push(name)
+      } catch (e) {
+        fail.push({ name, reason: e instanceof Error ? e.message : "unknown error" })
+      }
+    }
+
+    setSelected(new Set())
+    setTransferring(false)
+    await actions.refresh()
+    const parts: string[] = []
+    if (ok.length > 0) parts.push(`✓ ${ok.length} transferred: ${ok.join(", ")}`)
+    for (const f of fail) parts.push(`✗ ${f.name}: ${f.reason}`)
+    setToastType(fail.length > 0 ? "error" : "success")
+    setToastMsg(parts.join("  "))
+  }
+
   useKeyboard((key: any) => {
     if (key.name === "1") { setTab("mcp"); setCursor(0); setSelected(new Set()) }
     if (key.name === "2") { setTab("rules"); setCursor(0); setSelected(new Set()) }
+    if (key.name === "3") { setTab("skills"); setCursor(0); setSelected(new Set()) }
     if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
     if (matchKey(key, KEYBINDS.nextPanel)) { setPanel((p) => p === "from" ? "to" : "from"); setCursor(0) }
 
@@ -157,7 +213,7 @@ export function Transfer() {
     }
 
     if (panel() === "from" && fromCLI()) {
-      const items = tab() === "rules" ? fromCLI()!.rules : fromCLI()!.servers
+      const items = tab() === "rules" ? fromCLI()!.rules : tab() === "skills" ? fromCLI()!.skills : fromCLI()!.servers
       if (matchKey(key, KEYBINDS.up)) setCursor((c) => Math.max(0, c - 1))
       if (matchKey(key, KEYBINDS.down)) setCursor((c) => Math.min(items.length - 1, c + 1))
       if (matchKey(key, KEYBINDS.toggle) && items[cursor()]) {
@@ -181,6 +237,7 @@ export function Transfer() {
 
     if (matchKey(key, KEYBINDS.select) && selected().size > 0) {
       if (tab() === "rules") handleRulesTransfer()
+      else if (tab() === "skills") handleSkillsTransfer()
       else handleTransfer()
     }
   })
@@ -217,6 +274,14 @@ export function Transfer() {
             onMouseDown={() => { setTab("rules"); setCursor(0); setSelected(new Set()) }}
           >
             <text fg={tab() === "rules" ? theme.bg : theme.muted}>Rules</text>
+          </box>
+          <box
+            paddingLeft={2}
+            paddingRight={2}
+            backgroundColor={tab() === "skills" ? theme.accent : theme.border}
+            onMouseDown={() => { setTab("skills"); setCursor(0); setSelected(new Set()) }}
+          >
+            <text fg={tab() === "skills" ? theme.bg : theme.muted}>Skills</text>
           </box>
         </box>
         <box flexGrow={1} />
@@ -480,6 +545,147 @@ export function Transfer() {
         </box>
       </Show>
 
+      <Show when={tab() === "skills"}>
+        <box flexGrow={1} flexDirection="row">
+          {/* FROM skills panel */}
+          <box
+            flexGrow={1}
+            border
+            borderStyle="rounded"
+            borderColor={panel() === "from" ? theme.accent : theme.border}
+            paddingLeft={1}
+            paddingRight={1}
+            flexDirection="column"
+            onMouseDown={() => setPanel("from")}
+          >
+            <text fg={theme.muted}>{t.from}</text>
+            <Show when={fromCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() - 1 + clis.length) % clis.length
+                    if (next === toIdx()) next = (next - 1 + clis.length) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{fromCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() + 1) % clis.length
+                    if (next === toIdx()) next = (next + 1) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <box height={1} />
+              <Show when={fromCLI()!.skills.length > 0} fallback={<text fg={theme.muted}>no skills</text>}>
+                {(() => {
+                  const skills = fromCLI()!.skills
+                  const maxVisible = visibleRows()
+                  const start = Math.max(0, Math.min(cursor() - Math.floor(maxVisible / 2), skills.length - maxVisible))
+                  const end = Math.min(skills.length, start + maxVisible)
+                  const visible = skills.slice(start, end)
+                  return <>
+                    <Show when={start > 0}><text fg={theme.muted}>  ↑ {start} more</text></Show>
+                    <For each={visible}>
+                      {(skill, vi) => {
+                        const i = () => start + vi()
+                        return (
+                          <text
+                            fg={cursor() === i() && panel() === "from" ? theme.accent : theme.fg}
+                            onMouseDown={() => {
+                              setCursor(i())
+                              setPanel("from")
+                              setSelected((s) => {
+                                const next = new Set(s)
+                                next.has(skill.name) ? next.delete(skill.name) : next.add(skill.name)
+                                return next
+                              })
+                            }}
+                            onMouseOver={() => { setCursor(i()); setPanel("from") }}
+                          >
+                            {selected().has(skill.name) ? "◉ " : "○ "}
+                            <span fg={theme.muted}>{skill._scope === "project" ? "[P] " : "[G] "}</span>
+                            {skill.name}
+                          </text>
+                        )
+                      }}
+                    </For>
+                    <Show when={end < skills.length}><text fg={theme.muted}>  ↓ {skills.length - end} more</text></Show>
+                  </>
+                })()}
+              </Show>
+            </Show>
+          </box>
+
+          {/* Arrow */}
+          <box width={7} alignItems="center" justifyContent="center">
+            <box
+              border
+              borderStyle="rounded"
+              borderColor={selected().size > 0 ? theme.accent : theme.border}
+              paddingLeft={1}
+              paddingRight={1}
+              onMouseDown={() => { if (selected().size > 0) handleSkillsTransfer() }}
+            >
+              <text fg={selected().size > 0 ? theme.accent : theme.muted}>{transferring() ? "..." : "►"}</text>
+            </box>
+          </box>
+
+          {/* TO skills panel */}
+          <box
+            flexGrow={1}
+            border
+            borderStyle="rounded"
+            borderColor={panel() === "to" ? theme.accent : theme.border}
+            paddingLeft={1}
+            paddingRight={1}
+            flexDirection="column"
+            onMouseDown={() => setPanel("to")}
+          >
+            <text fg={theme.muted}>{t.to}</text>
+            <Show when={toCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() - 1 + clis.length) % clis.length
+                    if (next === fromIdx()) next = (next - 1 + clis.length) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{toCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() + 1) % clis.length
+                    if (next === fromIdx()) next = (next + 1) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <box height={1} />
+              <Show when={toCLI()!.skills.length > 0} fallback={<text fg={theme.muted}>no skills</text>}>
+                <For each={toCLI()!.skills}>
+                  {(skill) => (
+                    <text fg={theme.fg}>
+                      <span fg={theme.success}>● </span>
+                      {skill.name}
+                    </text>
+                  )}
+                </For>
+              </Show>
+            </Show>
+          </box>
+        </box>
+      </Show>
+
       {/* Toast */}
       <Show when={toastMsg()}>
         <box width="100%" height={1} paddingLeft={1}>
@@ -491,6 +697,7 @@ export function Transfer() {
       <StatusBar hints={[
         { key: "1", label: "MCP" },
         { key: "2", label: "Rules" },
+        { key: "3", label: "Skills" },
         { key: "⮜⮞", label: t.switchCli },
         { key: "space", label: t.select },
         { key: "⏎", label: t.transfer },

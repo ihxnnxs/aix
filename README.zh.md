@@ -20,7 +20,7 @@
 
 ---
 
-通过交互式 TUI 在 AI 编程工具之间传输 MCP 服务器配置。支持 16 种工具的全局和项目级配置。
+通过交互式 TUI 在 AI 编程工具之间传输 MCP 服务器配置。支持 21 种工具的全局和项目级配置。
 
 ## 安装
 
@@ -57,6 +57,11 @@ aix doctor       # 诊断工具检测
 | Goose | ✓ | | ✓ `.goosehints` |
 | Crush | ✓ | ✓ | ✓ `AGENTS.md` |
 | Eigent | ✓ | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` |
 
 ## 功能
 

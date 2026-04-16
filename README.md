@@ -18,7 +18,7 @@
 
 ---
 
-Transfer MCP servers and rules between AI coding tools through an interactive TUI. Supports 16 tools with both global and project-scoped configurations.
+Transfer MCP servers and rules between AI coding tools through an interactive TUI. Supports 21 tools with both global and project-scoped configurations.
 
 ## Install
 
@@ -55,6 +55,11 @@ aix doctor       # Diagnose CLI tool detection
 | Goose | ✓ | | ✓ `.goosehints` |
 | Crush | ✓ | ✓ | ✓ `AGENTS.md` |
 | Eigent | ✓ | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` |
 
 ## Features
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is aix
 
-aix (AI eXchange) is a universal tool for managing AI coding tool configurations. It provides an interactive TUI to transfer MCP server configs between Claude Code, Cursor, VS Code, OpenCode, Qwen Code, and 11 other tools. Supports both global and project-scoped configs.
+aix (AI eXchange) is a universal tool for managing AI coding tool configurations. It provides an interactive TUI to transfer MCP server configs between Claude Code, Cursor, VS Code, OpenCode, Qwen Code, and 16 other tools. Supports both global and project-scoped configs.
 
 ## Commands
 
@@ -20,7 +20,7 @@ Default to using Bun instead of Node.js for all operations. Use `Bun.file()` ove
 
 ## Architecture
 
-**Generic adapter** — all 16 AI tools share one `GenericMCPAdapter` class (`src/adapters/generic.ts`), configured by `CLIDef` definitions in `src/adapters/detector.ts`. Each CLIDef specifies config paths, server key, and optional project-scoped paths. No per-tool adapter files needed.
+**Generic adapter** — all 21 AI tools share one `GenericMCPAdapter` class (`src/adapters/generic.ts`), configured by `CLIDef` definitions in `src/adapters/detector.ts`. Each CLIDef specifies config paths, server key, and optional project-scoped paths. No per-tool adapter files needed.
 
 **Scope system** — adapters support `"global" | "project" | "all"` scopes. `findProjectRoot()` in `src/utils/project.ts` walks up from cwd looking for `.git`. Project-scoped configs (e.g., `.mcp.json`, `.cursor/mcp.json`) are read alongside global configs. `MCPServer._scope` tracks origin.
 
