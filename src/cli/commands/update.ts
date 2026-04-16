@@ -1,6 +1,6 @@
 import type { CommandModule } from "yargs"
 import { VERSION } from "../../version"
-import { checkForUpdate, compareVersions } from "../../utils/update"
+import { compareVersions } from "../../utils/update"
 
 const REPO = "ihxnnxs/aix"
 
@@ -12,18 +12,21 @@ export const UpdateCommand: CommandModule = {
     console.log(`  aix v${VERSION}`)
     console.log(`  Checking for updates...`)
 
-    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
-      headers: { Accept: "application/vnd.github+json" },
-      signal: AbortSignal.timeout(10000),
-    })
+    let data: { tag_name: string; assets: Array<{ name: string; browser_download_url: string }> }
 
-    if (!res.ok) {
-      console.log(`  ✗ Failed to check for updates`)
+    try {
+      const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+        headers: { Accept: "application/vnd.github+json" },
+        signal: AbortSignal.timeout(15000),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      data = await res.json()
+    } catch (e) {
+      console.log(`  ✗ Failed to check for updates: ${e instanceof Error ? e.message : "network error"}`)
       console.log()
       return
     }
 
-    const data = (await res.json()) as { tag_name: string; assets: Array<{ name: string; browser_download_url: string }> }
     const latest = data.tag_name.replace(/^v/, "")
 
     if (!compareVersions(VERSION, latest)) {
@@ -32,7 +35,7 @@ export const UpdateCommand: CommandModule = {
       return
     }
 
-    console.log(`  ⚠ Update available: v${VERSION} -> v${latest}`)
+    console.log(`  Update available: v${VERSION} -> v${latest}`)
 
     const os = process.platform === "darwin" ? "darwin" : process.platform === "win32" ? "windows" : "linux"
     const arch = process.arch === "arm64" ? "arm64" : "x64"
@@ -58,7 +61,10 @@ export const UpdateCommand: CommandModule = {
     const tmp = mkdtempSync(join(tmpdir(), "aix-update-"))
 
     try {
-      const dlRes = await fetch(asset.browser_download_url, { signal: AbortSignal.timeout(60000) })
+      const dlRes = await fetch(asset.browser_download_url, {
+        redirect: "follow",
+        signal: AbortSignal.timeout(120000),
+      })
       if (!dlRes.ok) throw new Error(`Download failed: ${dlRes.status}`)
 
       const buf = await dlRes.arrayBuffer()
@@ -78,7 +84,7 @@ export const UpdateCommand: CommandModule = {
 
       console.log(`  ✓ Updated to v${latest}`)
     } catch (e) {
-      console.log(`  ✗ Update failed: ${e instanceof Error ? e.message : e}`)
+      console.log(`  ✗ Update failed: ${e instanceof Error ? e.message : "unknown error"}`)
       console.log(`  Run manually: curl -fsSL https://raw.githubusercontent.com/${REPO}/main/install.sh | bash`)
     } finally {
       const { rmSync } = await import("node:fs")

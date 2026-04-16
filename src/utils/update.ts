@@ -44,7 +44,7 @@ export async function checkForUpdate(store?: KVStore): Promise<UpdateInfo | null
   try {
     const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
       headers: { "Accept": "application/vnd.github+json" },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(15000),
     })
     if (!res.ok) return null
 
