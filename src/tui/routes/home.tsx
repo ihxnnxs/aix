@@ -5,7 +5,7 @@ import { useApp } from "../context/app"
 import { KEYBINDS, matchKey } from "../context/keybind"
 import { StatusBar } from "../components/status-bar"
 import { VERSION } from "../../version"
-import { checkForUpdate, type UpdateInfo } from "../../utils/update"
+import { checkForUpdate, type UpdateInfo, performUpdate } from "../../utils/update"
 import { getStrings } from "../i18n"
 
 const ASCII_LOGO = [
@@ -33,6 +33,7 @@ export function Home() {
   const [updateInfo, setUpdateInfo] = createSignal<UpdateInfo | null>(null)
   const [showUpdate, setShowUpdate] = createSignal(false)
   const [updateBtn, setUpdateBtn] = createSignal(0) // 0 = Update, 1 = Later
+  const [updateStatus, setUpdateStatus] = createSignal("")
 
   onMount(async () => {
     const info = await checkForUpdate()
@@ -49,8 +50,16 @@ export function Home() {
       }
       if (matchKey(key, KEYBINDS.select)) {
         if (updateBtn() === 0) {
-          Bun.spawn(["bash", "-c", "curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash"], { stdio: ["inherit", "inherit", "inherit"] })
-          process.exit(0)
+          setUpdateStatus(t.updating ?? "Updating...")
+          performUpdate(updateInfo()!.latest).then((ok) => {
+            if (ok) {
+              setUpdateStatus(t.updateDone ?? "Updated! Restart aix.")
+              setTimeout(() => process.exit(0), 1500)
+            } else {
+              setUpdateStatus(t.updateFailed ?? "Update failed")
+              setTimeout(() => setUpdateStatus(""), 3000)
+            }
+          })
         } else {
           setShowUpdate(false)
         }
@@ -183,6 +192,10 @@ export function Home() {
             <box height={1} />
             <text fg={theme.fg}>v{updateInfo()!.current} → v{updateInfo()!.latest}</text>
             <box height={1} />
+            <Show when={updateStatus()}>
+              <text fg={theme.accent}>{updateStatus()}</text>
+              <box height={1} />
+            </Show>
             <box flexDirection="row" gap={2}>
               <box
                 border
@@ -191,8 +204,16 @@ export function Home() {
                 paddingLeft={2}
                 paddingRight={2}
                 onMouseDown={() => {
-                  Bun.spawn(["bash", "-c", "curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash"], { stdio: ["inherit", "inherit", "inherit"] })
-                  process.exit(0)
+                  setUpdateStatus(t.updating ?? "Updating...")
+                  performUpdate(updateInfo()!.latest).then((ok) => {
+                    if (ok) {
+                      setUpdateStatus(t.updateDone ?? "Updated! Restart aix.")
+                      setTimeout(() => process.exit(0), 1500)
+                    } else {
+                      setUpdateStatus(t.updateFailed ?? "Update failed")
+                      setTimeout(() => setUpdateStatus(""), 3000)
+                    }
+                  })
                 }}
                 onMouseOver={() => setUpdateBtn(0)}
               >
