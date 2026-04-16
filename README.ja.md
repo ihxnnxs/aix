@@ -39,37 +39,37 @@ aix doctor       # ツール検出の診断
 
 ## 対応ツール
 
-| ツール | MCP グローバル | MCP プロジェクト | Rules |
-|--------|:----------:|:-----------:|:-----:|
-| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` |
-| Claude Desktop | ✓ | | |
-| Cursor | ✓ | ✓ | ✓ `.cursorrules` |
-| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` |
-| Windsurf | ✓ | | ✓ `.windsurfrules` |
-| Cline | ✓ | | ✓ `.clinerules` |
-| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` |
-| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` |
-| TRAE | ✓ | ✓ | ✓ `project_rules.md` |
-| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` |
-| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` |
-| Claude for IDE | ✓ | | |
-| Droid | ✓ | ✓ | ✓ `.factory/` |
-| Goose | ✓ | | ✓ `.goosehints` |
-| Crush | ✓ | ✓ | ✓ `AGENTS.md` |
-| Eigent | ✓ | | |
-| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` |
-| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` |
-| Amp | ✓ | ✓ | ✓ `AGENT.md` |
-| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` |
-| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` |
+| ツール | MCP グローバル | MCP プロジェクト | Rules | Skills |
+|--------|:----------:|:-----------:|:-----:|:------:|
+| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` | ✓ |
+| Claude Desktop | ✓ | | | |
+| Cursor | ✓ | ✓ | ✓ `.cursorrules` | ✓ |
+| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` | |
+| Windsurf | ✓ | | ✓ `.windsurfrules` | |
+| Cline | ✓ | | ✓ `.clinerules` | |
+| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` | |
+| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` | |
+| TRAE | ✓ | ✓ | ✓ `project_rules.md` | |
+| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Claude for IDE | ✓ | | | |
+| Droid | ✓ | ✓ | ✓ `.factory/` | |
+| Goose | ✓ | | ✓ `.goosehints` | |
+| Crush | ✓ | ✓ | ✓ `AGENTS.md` | |
+| Eigent | ✓ | | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` | ✓ |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` | |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` | ✓ |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` | |
 
 ## 機能
 
-- **転送** — 一つのツールからMCPサーバーを選択し、フォーマットを自動変換して別のツールに転送
-- **プロジェクトスコープ** — プロジェクトディレクトリ内で `aix` を実行し、グローバルとプロジェクトレベルの設定を管理
-- **自動検出** — システムにインストールされたAIツールをスキャンし、設定を読み取り
-- **バックアップ** — 変更前に設定を自動バックアップ (`~/.config/aix/backups/`)
-- **警告** — 転送前に互換性のないフィールドを表示
+- **転送** - 一つのツールからMCPサーバーを選択し、フォーマットを自動変換して別のツールに転送
+- **プロジェクトスコープ** - プロジェクトディレクトリ内で `aix` を実行し、グローバルとプロジェクトレベルの設定を管理
+- **自動検出** - システムにインストールされたAIツールをスキャンし、設定を読み取り
+- **バックアップ** - 変更前に設定を自動バックアップ (`~/.config/aix/backups/`)
+- **警告** - 転送前に互換性のないフィールドを表示
 
 ## 開発
 

@@ -37,40 +37,40 @@ aix doctor       # Diagnose CLI tool detection
 
 ## Supported Tools
 
-| Tool | MCP Global | MCP Project | Rules |
-|------|:----------:|:-----------:|:-----:|
-| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` |
-| Claude Desktop | ✓ | | |
-| Cursor | ✓ | ✓ | ✓ `.cursorrules` |
-| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` |
-| Windsurf | ✓ | | ✓ `.windsurfrules` |
-| Cline | ✓ | | ✓ `.clinerules` |
-| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` |
-| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` |
-| TRAE | ✓ | ✓ | ✓ `project_rules.md` |
-| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` |
-| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` |
-| Claude for IDE | ✓ | | |
-| Droid | ✓ | ✓ | ✓ `.factory/` |
-| Goose | ✓ | | ✓ `.goosehints` |
-| Crush | ✓ | ✓ | ✓ `AGENTS.md` |
-| Eigent | ✓ | | |
-| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` |
-| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` |
-| Amp | ✓ | ✓ | ✓ `AGENT.md` |
-| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` |
-| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` |
+| Tool | MCP Global | MCP Project | Rules | Skills |
+|------|:----------:|:-----------:|:-----:|:------:|
+| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` | ✓ |
+| Claude Desktop | ✓ | | | |
+| Cursor | ✓ | ✓ | ✓ `.cursorrules` | ✓ |
+| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` | |
+| Windsurf | ✓ | | ✓ `.windsurfrules` | |
+| Cline | ✓ | | ✓ `.clinerules` | |
+| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` | |
+| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` | |
+| TRAE | ✓ | ✓ | ✓ `project_rules.md` | |
+| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Claude for IDE | ✓ | | | |
+| Droid | ✓ | ✓ | ✓ `.factory/` | |
+| Goose | ✓ | | ✓ `.goosehints` | |
+| Crush | ✓ | ✓ | ✓ `AGENTS.md` | |
+| Eigent | ✓ | | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` | ✓ |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` | |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` | ✓ |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` | |
 
 ## Features
 
-- **MCP Transfer** — select MCP servers from one tool, transfer to another with automatic format adaptation
-- **Rules Transfer** — transfer rules/instructions between tools (`.cursorrules` ↔ `CLAUDE.md` ↔ `.clinerules` etc.)
-- **Project scope** — run `aix` inside a project to manage both global and project-scoped configs
-- **Auto-detect** — scans your system for installed AI tools and reads their configurations
-- **Themes** — 5 built-in themes (Default, Dracula, Monokai, Gruvbox, Nord)
-- **Languages** — English, Русский, 中文, 日本語, 한국어
-- **Update checker** — notifies you when a new version is available
-- **Backups** — configs are backed up before any changes (`~/.config/aix/backups/`)
+- **MCP Transfer** - select MCP servers from one tool, transfer to another with automatic format adaptation
+- **Rules Transfer** - transfer rules/instructions between tools (`.cursorrules` ↔ `CLAUDE.md` ↔ `.clinerules` etc.)
+- **Project scope** - run `aix` inside a project to manage both global and project-scoped configs
+- **Auto-detect** - scans your system for installed AI tools and reads their configurations
+- **Themes** - 5 built-in themes (Default, Dracula, Monokai, Gruvbox, Nord)
+- **Languages** - English, Русский, 中文, 日本語, 한국어
+- **Update checker** - notifies you when a new version is available
+- **Backups** - configs are backed up before any changes (`~/.config/aix/backups/`)
 
 ## Development
 

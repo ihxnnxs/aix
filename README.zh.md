@@ -39,37 +39,37 @@ aix doctor       # 诊断工具检测
 
 ## 支持的工具
 
-| 工具 | MCP 全局 | MCP 项目 | Rules |
-|------|:----:|:----:|
-| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` |
-| Claude Desktop | ✓ | | |
-| Cursor | ✓ | ✓ | ✓ `.cursorrules` |
-| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` |
-| Windsurf | ✓ | | ✓ `.windsurfrules` |
-| Cline | ✓ | | ✓ `.clinerules` |
-| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` |
-| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` |
-| TRAE | ✓ | ✓ | ✓ `project_rules.md` |
-| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` |
-| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` |
-| Claude for IDE | ✓ | | |
-| Droid | ✓ | ✓ | ✓ `.factory/` |
-| Goose | ✓ | | ✓ `.goosehints` |
-| Crush | ✓ | ✓ | ✓ `AGENTS.md` |
-| Eigent | ✓ | | |
-| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` |
-| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` |
-| Amp | ✓ | ✓ | ✓ `AGENT.md` |
-| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` |
-| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` |
+| 工具 | MCP 全局 | MCP 项目 | Rules | Skills |
+|------|:----------:|:-----------:|:-----:|:------:|
+| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` | ✓ |
+| Claude Desktop | ✓ | | | |
+| Cursor | ✓ | ✓ | ✓ `.cursorrules` | ✓ |
+| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` | |
+| Windsurf | ✓ | | ✓ `.windsurfrules` | |
+| Cline | ✓ | | ✓ `.clinerules` | |
+| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` | |
+| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` | |
+| TRAE | ✓ | ✓ | ✓ `project_rules.md` | |
+| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Claude for IDE | ✓ | | | |
+| Droid | ✓ | ✓ | ✓ `.factory/` | |
+| Goose | ✓ | | ✓ `.goosehints` | |
+| Crush | ✓ | ✓ | ✓ `AGENTS.md` | |
+| Eigent | ✓ | | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` | ✓ |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` | |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` | ✓ |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` | |
 
 ## 功能
 
-- **传输** — 从一个工具中选择 MCP 服务器，自动适配格式传输到另一个工具
-- **项目作用域** — 在项目目录中运行 `aix`，同时管理全局和项目级配置
-- **自动检测** — 扫描系统中已安装的 AI 工具并读取其配置
-- **备份** — 在任何更改之前自动备份配置 (`~/.config/aix/backups/`)
-- **警告** — 传输前标记不兼容的字段
+- **传输** - 从一个工具中选择 MCP 服务器，自动适配格式传输到另一个工具
+- **项目作用域** - 在项目目录中运行 `aix`，同时管理全局和项目级配置
+- **自动检测** - 扫描系统中已安装的 AI 工具并读取其配置
+- **备份** - 在任何更改之前自动备份配置 (`~/.config/aix/backups/`)
+- **警告** - 传输前标记不兼容的字段
 
 ## 开发
 
