@@ -4,6 +4,7 @@ import { hideBin } from "yargs/helpers"
 import { DoctorCommand } from "./cli/commands/doctor"
 import { ListCommand } from "./cli/commands/list"
 import { TransferCommand } from "./cli/commands/transfer"
+import { UpdateCommand } from "./cli/commands/update"
 import { VERSION } from "./version"
 import { findProjectRoot } from "./utils/project"
 
@@ -22,6 +23,7 @@ if (args.length === 0) {
     .command(DoctorCommand)
     .command(ListCommand)
     .command(TransferCommand)
+    .command(UpdateCommand)
     .version(VERSION)
     .help()
     .demandCommand(1, "Run aix --help to see available commands")
