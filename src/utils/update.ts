@@ -98,7 +98,14 @@ export async function performUpdate(targetVersion: string): Promise<boolean> {
 
       const newBin = join(tmp, os === "windows" ? "aix.exe" : "aix")
       const binPath = process.execPath
-      copyFileSync(newBin, binPath)
+      // Linux: can't overwrite running binary, so unlink first then rename
+      const { unlinkSync, renameSync } = await import("node:fs")
+      try { unlinkSync(binPath) } catch {}
+      try {
+        renameSync(newBin, binPath)
+      } catch {
+        copyFileSync(newBin, binPath)
+      }
       if (os !== "windows") chmodSync(binPath, 0o755)
 
       return true
