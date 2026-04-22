@@ -16,6 +16,8 @@ export interface CLIDef {
   projectRulesPath?: (root: string) => string[]
   skillsPath?: () => string[]
   projectSkillsPath?: (root: string) => string[]
+  agentsPath?: () => string[]
+  projectAgentsPath?: (root: string) => string[]
 }
 
 const home = homedir()
