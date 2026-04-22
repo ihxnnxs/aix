@@ -60,6 +60,25 @@ export interface Adapter {
   writeSkillFile(content: string, targetPath: string): Promise<void>
 }
 
+export interface AgentFile {
+  name: string
+  path: string
+  content: string
+  lines: number
+  description?: string
+  _source: string
+  _scope: "global" | "project"
+}
+
+export interface TransferPlan {
+  kind: "mcp" | "rules" | "skills" | "agents"
+  action: "create" | "overwrite" | "merge-json"
+  sourceName: string
+  targetPath: string
+  existingSize?: number
+  warnings: string[]
+}
+
 export function createMCPServer(
   name: string,
   raw: Record<string, unknown>,
