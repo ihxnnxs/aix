@@ -39,36 +39,39 @@ aix doctor       # 도구 감지 진단
 
 ## 지원 도구
 
-| 도구 | MCP 글로벌 | MCP 프로젝트 | Rules | Skills |
-|------|:----------:|:-----------:|:-----:|:------:|
-| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` | ✓ |
-| Claude Desktop | ✓ | | | |
-| Cursor | ✓ | ✓ | ✓ `.cursorrules` | ✓ |
-| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` | |
-| Windsurf | ✓ | | ✓ `.windsurfrules` | |
-| Cline | ✓ | | ✓ `.clinerules` | |
-| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` | |
-| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` | |
-| TRAE | ✓ | ✓ | ✓ `project_rules.md` | |
-| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
-| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
-| Claude for IDE | ✓ | | | |
-| Droid | ✓ | ✓ | ✓ `.factory/` | |
-| Goose | ✓ | | ✓ `.goosehints` | |
-| Crush | ✓ | ✓ | ✓ `AGENTS.md` | |
-| Eigent | ✓ | | | |
-| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` | ✓ |
-| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` | |
-| Amp | ✓ | ✓ | ✓ `AGENT.md` | ✓ |
-| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` | ✓ |
-| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` | |
+| 도구 | MCP 글로벌 | MCP 프로젝트 | Rules | Skills | Agents |
+|------|:----------:|:-----------:|:-----:|:------:|:------:|
+| Claude Code | ✓ | ✓ | ✓ `CLAUDE.md` | ✓ | ✓ |
+| Claude Desktop | ✓ | | | | |
+| Cursor | ✓ | ✓ | ✓ `.cursorrules` | ✓ | ✓ |
+| VS Code | ✓ | ✓ | ✓ `copilot-instructions.md` | | |
+| Windsurf | ✓ | | ✓ `.windsurfrules` | | |
+| Cline | ✓ | | ✓ `.clinerules` | | |
+| Roo Code | ✓ | ✓ | ✓ `.roo/rules/` | | |
+| Kilo Code | ✓ | ✓ | ✓ `.kilo/rules/` | | |
+| TRAE | ✓ | ✓ | ✓ `project_rules.md` | | |
+| OpenCode | ✓ | ✓ | ✓ `AGENTS.md` | ✓ | ✓ |
+| Qwen Code | ✓ | ✓ | ✓ `AGENTS.md` | ✓ | ✓ |
+| Claude for IDE | ✓ | | | | |
+| Droid | ✓ | ✓ | ✓ `.factory/` | | |
+| Goose | ✓ | | ✓ `.goosehints` | | |
+| Crush | ✓ | ✓ | ✓ `AGENTS.md` | | |
+| Eigent | ✓ | | | | |
+| Gemini CLI | ✓ | ✓ | ✓ `GEMINI.md` | ✓ | ✓ |
+| Amazon Q | ✓ | ✓ | ✓ `.amazonq/rules/` | | |
+| Amp | ✓ | ✓ | ✓ `AGENT.md` | ✓ | |
+| Codex CLI | ✓ | ✓ | ✓ `AGENTS.md` | ✓ | |
+| Copilot CLI | ✓ | | ✓ `copilot-instructions.md` | | |
 
 ## 기능
 
 - **전송** - 한 도구에서 MCP 서버를 선택하고 형식을 자동 변환하여 다른 도구로 전송
+- **에이전트 전송** — AI CLI 간에 서브에이전트 마크다운 파일 전송
 - **프로젝트 범위** - 프로젝트 디렉토리에서 `aix`를 실행하여 글로벌 및 프로젝트 수준 설정을 관리
 - **자동 감지** - 시스템에 설치된 AI 도구를 스캔하고 설정을 읽음
 - **백업** - 변경 전 설정을 자동 백업 (`~/.config/aix/backups/`)
+- **복원** — `aix restore` 또는 TUI 백업 화면에서 설정 변경 사항 롤백
+- **드라이런** — `aix transfer --dry-run` 또는 TUI에서 `d`를 눌러 실제 쓰기 없이 작업 미리보기
 - **경고** - 전송 전 호환되지 않는 필드를 표시
 
 ## 개발
