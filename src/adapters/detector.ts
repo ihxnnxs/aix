@@ -48,6 +48,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectRulesPath: (root) => [join(root, "CLAUDE.md")],
     skillsPath: () => [join(home, ".claude", "skills")],
     projectSkillsPath: (root) => [join(root, ".claude", "skills")],
+    agentsPath: () => [join(home, ".claude", "agents")],
+    projectAgentsPath: (root) => [join(root, ".claude", "agents")],
   },
   "claude-desktop": {
     id: "claude-desktop",
@@ -64,6 +66,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectRulesPath: (root) => [join(root, ".cursorrules"), join(root, ".cursor", "rules")],
     skillsPath: () => [join(home, ".cursor", "skills")],
     projectSkillsPath: (root) => [join(root, ".cursor", "skills")],
+    agentsPath: () => [join(home, ".cursor", "agents")],
+    projectAgentsPath: (root) => [join(root, ".cursor", "agents")],
   },
   vscode: {
     id: "vscode",
@@ -133,6 +137,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectRulesPath: (root) => [join(root, "AGENTS.md")],
     skillsPath: () => [join(appDataDir(), "opencode", "skill")],
     projectSkillsPath: (root) => [join(root, ".opencode", "skill")],
+    agentsPath: () => [join(appDataDir(), "opencode", "agents")],
+    projectAgentsPath: (root) => [join(root, ".opencode", "agents")],
   },
   "qwen-code": {
     id: "qwen-code",
@@ -147,6 +153,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectRulesPath: (root) => [join(root, "AGENTS.md")],
     skillsPath: () => [join(home, ".qwen", "skills")],
     projectSkillsPath: (root) => [join(root, ".qwen", "skills")],
+    agentsPath: () => [join(home, ".qwen", "agents")],
+    projectAgentsPath: (root) => [join(root, ".qwen", "agents")],
   },
   "claude-ide": {
     id: "claude-ide",
@@ -208,6 +216,8 @@ const CLI_DEFS: Record<string, CLIDef> = {
     projectRulesPath: (root) => [join(root, "GEMINI.md")],
     skillsPath: () => [join(home, ".gemini", "skills")],
     projectSkillsPath: (root) => [join(root, ".gemini", "skills")],
+    agentsPath: () => [join(home, ".gemini", "agents")],
+    projectAgentsPath: (root) => [join(root, ".gemini", "agents")],
   },
   "amazon-q": {
     id: "amazon-q",
