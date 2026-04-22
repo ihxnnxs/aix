@@ -59,6 +59,7 @@ test("transfer --dry-run for rules prints plan", async () => {
   ], {
     env: { ...process.env, HOME: join(tmp, "home") },
     stdout: "pipe", stderr: "pipe",
+    cwd: "/home/hxnnxs/Projects/aix",
   })
 
   const stdout = await new Response(proc.stdout).text()
@@ -79,6 +80,7 @@ test("transfer --dry-run for skills prints plan", async () => {
   ], {
     env: { ...process.env, HOME: join(tmp, "home") },
     stdout: "pipe", stderr: "pipe",
+    cwd: "/home/hxnnxs/Projects/aix",
   })
 
   const stdout = await new Response(proc.stdout).text()

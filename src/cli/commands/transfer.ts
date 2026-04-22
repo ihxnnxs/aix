@@ -8,6 +8,12 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import type { TransferPlan } from "../../adapters/types"
 
+function exitWithError(msg: string): never {
+  console.error(msg)
+  process.exit(1)
+  throw new Error(msg) // unreachable, but makes TypeScript happy
+}
+
 export const TransferCommand: CommandModule = {
   command: "transfer",
   describe: "Transfer MCP servers between CLI tools",
@@ -48,8 +54,7 @@ async function runNonInteractive(args: any): Promise<void> {
   const fromDef = getAllCLIDefs().find((d) => d.id === args.from)
   const toDef = getAllCLIDefs().find((d) => d.id === args.to)
   if (!fromDef || !toDef) {
-    console.error(`Unknown tool: ${!fromDef ? args.from : args.to}`)
-    process.exit(1)
+    exitWithError(`Unknown tool: ${!fromDef ? args.from : args.to}`)
   }
 
   const projectRoot = findProjectRoot(process.cwd())
@@ -64,16 +69,14 @@ async function runNonInteractive(args: any): Promise<void> {
     const agents = await fromAdapter.getAgentFiles()
     const agent = agents.find((a) => a.name === args.name)
     if (!agent) {
-      console.error(`Agent not found: ${args.name}`)
-      process.exit(1)
+      exitWithError(`Agent not found: ${args.name}`)
     }
     const targetDir =
       args.scope === "project" && projectRoot && toDef.projectAgentsPath
         ? toDef.projectAgentsPath(projectRoot)[0]
         : toDef.agentsPath?.()[0]
     if (!targetDir) {
-      console.error(`Target tool ${toDef.id} does not support agents`)
-      process.exit(1)
+      exitWithError(`Target tool ${toDef.id} does not support agents`)
     }
     const targetPath = join(targetDir, agent.name)
     plans.push(planAgentTransfer(agent.name, targetPath))
@@ -92,15 +95,13 @@ async function runNonInteractive(args: any): Promise<void> {
     const rules = await fromAdapter.getRulesFiles()
     const rule = rules.find((r) => r.name === args.name)
     if (!rule) {
-      console.error(`Rule not found: ${args.name}`)
-      process.exit(1)
+      exitWithError(`Rule not found: ${args.name}`)
     }
     const targetPath = args.scope === "project" && projectRoot && toDef.projectRulesPath
       ? toDef.projectRulesPath(projectRoot)[0]
       : (toDef.rulesPath?.()[0] ?? (projectRoot && toDef.projectRulesPath ? toDef.projectRulesPath(projectRoot)[0] : undefined))
     if (!targetPath) {
-      console.error(`Target tool ${toDef.id} does not support rules`)
-      process.exit(1)
+      exitWithError(`Target tool ${toDef.id} does not support rules`)
     }
     plans.push(planRulesTransfer(rule.name, targetPath))
 
@@ -119,15 +120,13 @@ async function runNonInteractive(args: any): Promise<void> {
     const skills = await fromAdapter.getSkillFiles()
     const skill = skills.find((s) => s.name === args.name)
     if (!skill) {
-      console.error(`Skill not found: ${args.name}`)
-      process.exit(1)
+      exitWithError(`Skill not found: ${args.name}`)
     }
     const targetDir = args.scope === "project" && projectRoot && toDef.projectSkillsPath
       ? toDef.projectSkillsPath(projectRoot)[0]
       : toDef.skillsPath?.()[0]
     if (!targetDir) {
-      console.error(`Target tool ${toDef.id} does not support skills`)
-      process.exit(1)
+      exitWithError(`Target tool ${toDef.id} does not support skills`)
     }
     const targetPath = join(targetDir, skill.name, "SKILL.md")
     plans.push(planSkillTransfer(skill.name, targetPath))
@@ -147,8 +146,7 @@ async function runNonInteractive(args: any): Promise<void> {
     const servers = await fromAdapter.getMCPServers()
     const server = servers.find((s) => s.name === args.name)
     if (!server) {
-      console.error(`MCP server not found: ${args.name}`)
-      process.exit(1)
+      exitWithError(`MCP server not found: ${args.name}`)
     }
     const targetPath = args.scope === "project" && projectRoot && toDef.projectPaths
       ? toDef.projectPaths(projectRoot)[0]
