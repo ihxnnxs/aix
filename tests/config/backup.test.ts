@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test"
-import { mkdtempSync, rmSync } from "node:fs"
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 import { BackupManager } from "../../src/config/backup"
@@ -86,5 +86,81 @@ describe("BackupManager", () => {
     const manager = new BackupManager(backupDir)
     const entries = await manager.list()
     expect(entries).toHaveLength(0)
+  })
+
+  test("restore() throws on nonexistent id", async () => {
+    const manager = new BackupManager(backupDir)
+    await expect(manager.restore("nonexistent-id")).rejects.toThrow("Backup not found")
+  })
+
+  test("restore() works when original path was deleted", async () => {
+    const manager = new BackupManager(backupDir)
+    const original = join(tmpDir, "config.json")
+    writeFileSync(original, "content")
+    const id = await manager.create("test-tool", original)
+    rmSync(original)
+    await manager.restore(id)
+    expect(await Bun.file(original).text()).toBe("content")
+  })
+
+  test("prune(30) removes entries older than cutoff", async () => {
+    const manager = new BackupManager(backupDir)
+    const original = join(tmpDir, "c.json")
+    writeFileSync(original, "x")
+    const id = await manager.create("t", original)
+
+    const metaPath = join(backupDir, id, "metadata.json")
+    const meta = await Bun.file(metaPath).json()
+    meta.createdAt = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString()
+    await Bun.write(metaPath, JSON.stringify(meta))
+
+    const removed = await manager.prune(30)
+    expect(removed).toBe(1)
+    expect((await manager.list()).length).toBe(0)
+  })
+
+  test("prune(0) removes all entries", async () => {
+    const manager = new BackupManager(backupDir)
+    const original1 = join(tmpDir, "c1.json")
+    const original2 = join(tmpDir, "c2.json")
+    writeFileSync(original1, "x")
+    writeFileSync(original2, "y")
+    await manager.create("t", original1)
+    await new Promise((r) => setTimeout(r, 10))
+    await manager.create("t", original2)
+    const removed = await manager.prune(0)
+    expect(removed).toBe(2)
+  })
+
+  test("list() returns [] when backups dir missing", async () => {
+    const manager = new BackupManager(join(tmpDir, "never-created"))
+    expect(await manager.list()).toEqual([])
+  })
+
+  test("list() skips entries without metadata.json (partial writes)", async () => {
+    const manager = new BackupManager(backupDir)
+    const original = join(tmpDir, "c.json")
+    writeFileSync(original, "x")
+    await manager.create("t", original)
+
+    mkdirSync(join(backupDir, "stray-dir"), { recursive: true })
+    writeFileSync(join(backupDir, "stray-dir", "config.json"), "stray")
+
+    const entries = await manager.list()
+    expect(entries.length).toBe(1)
+  })
+
+  test("list() sorts by createdAt ascending", async () => {
+    const manager = new BackupManager(backupDir)
+    const original = join(tmpDir, "c.json")
+    writeFileSync(original, "x")
+
+    const id1 = await manager.create("t", original)
+    await new Promise((r) => setTimeout(r, 10))
+    const id2 = await manager.create("t", original)
+
+    const entries = await manager.list()
+    expect(entries[0].id).toBe(id1)
+    expect(entries[1].id).toBe(id2)
   })
 })
