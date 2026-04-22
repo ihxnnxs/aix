@@ -25,7 +25,7 @@ export function Transfer() {
   const [toastMsg, setToastMsg] = createSignal("")
   const [toastType, setToastType] = createSignal<"success" | "error">("success")
   const [targetScope, setTargetScope] = createSignal<"global" | "project">("global")
-  const [tab, setTab] = createSignal<"mcp" | "rules" | "skills">("mcp")
+  const [tab, setTab] = createSignal<"mcp" | "rules" | "skills" | "agents">("mcp")
   const dims = useTerminalDimensions()
   const visibleRows = createMemo(() => Math.max(5, dims().height - 10))
 
@@ -192,6 +192,7 @@ export function Transfer() {
     if (key.name === "1") { setTab("mcp"); setCursor(0); setSelected(new Set()) }
     if (key.name === "2") { setTab("rules"); setCursor(0); setSelected(new Set()) }
     if (key.name === "3") { setTab("skills"); setCursor(0); setSelected(new Set()) }
+    if (key.name === "4") { setTab("agents"); setCursor(0); setSelected(new Set()) }
     if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
     if (matchKey(key, KEYBINDS.nextPanel)) { setPanel((p) => p === "from" ? "to" : "from"); setCursor(0) }
 
@@ -282,6 +283,14 @@ export function Transfer() {
             onMouseDown={() => { setTab("skills"); setCursor(0); setSelected(new Set()) }}
           >
             <text fg={tab() === "skills" ? theme.bg : theme.muted}>Skills</text>
+          </box>
+          <box
+            paddingLeft={2}
+            paddingRight={2}
+            backgroundColor={tab() === "agents" ? theme.accent : theme.border}
+            onMouseDown={() => { setTab("agents"); setCursor(0); setSelected(new Set()) }}
+          >
+            <text fg={tab() === "agents" ? theme.bg : theme.muted}>Agents</text>
           </box>
         </box>
         <box flexGrow={1} />
@@ -698,6 +707,7 @@ export function Transfer() {
         { key: "1", label: "MCP" },
         { key: "2", label: "Rules" },
         { key: "3", label: "Skills" },
+        { key: "4", label: "Agents" },
         { key: "⮜⮞", label: t.switchCli },
         { key: "space", label: t.select },
         { key: "⏎", label: t.transfer },
