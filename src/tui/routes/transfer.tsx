@@ -135,6 +135,10 @@ export function Transfer() {
     setToastMsg(parts.join("  "))
   }
 
+  const handleAgentsTransfer = async () => {
+    // Implementation added in Task 14
+  }
+
   const handleSkillsTransfer = async () => {
     const from = fromCLI()
     const to = toCLI()
@@ -214,7 +218,10 @@ export function Transfer() {
     }
 
     if (panel() === "from" && fromCLI()) {
-      const items = tab() === "rules" ? fromCLI()!.rules : tab() === "skills" ? fromCLI()!.skills : fromCLI()!.servers
+      const items = tab() === "rules" ? fromCLI()!.rules
+                  : tab() === "skills" ? fromCLI()!.skills
+                  : tab() === "agents" ? fromCLI()!.agents
+                  : fromCLI()!.servers
       if (matchKey(key, KEYBINDS.up)) setCursor((c) => Math.max(0, c - 1))
       if (matchKey(key, KEYBINDS.down)) setCursor((c) => Math.min(items.length - 1, c + 1))
       if (matchKey(key, KEYBINDS.toggle) && items[cursor()]) {
@@ -239,6 +246,7 @@ export function Transfer() {
     if (matchKey(key, KEYBINDS.select) && selected().size > 0) {
       if (tab() === "rules") handleRulesTransfer()
       else if (tab() === "skills") handleSkillsTransfer()
+      else if (tab() === "agents") handleAgentsTransfer()
       else handleTransfer()
     }
   })
@@ -686,6 +694,147 @@ export function Transfer() {
                     <text fg={theme.fg}>
                       <span fg={theme.success}>● </span>
                       {skill.name}
+                    </text>
+                  )}
+                </For>
+              </Show>
+            </Show>
+          </box>
+        </box>
+      </Show>
+
+      <Show when={tab() === "agents"}>
+        <box flexGrow={1} flexDirection="row">
+          {/* FROM agents panel */}
+          <box
+            flexGrow={1}
+            border
+            borderStyle="rounded"
+            borderColor={panel() === "from" ? theme.accent : theme.border}
+            paddingLeft={1}
+            paddingRight={1}
+            flexDirection="column"
+            onMouseDown={() => setPanel("from")}
+          >
+            <text fg={theme.muted}>{t.from}</text>
+            <Show when={fromCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() - 1 + clis.length) % clis.length
+                    if (next === toIdx()) next = (next - 1 + clis.length) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{fromCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (fromIdx() + 1) % clis.length
+                    if (next === toIdx()) next = (next + 1) % clis.length
+                    setFromIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <box height={1} />
+              <Show when={fromCLI()!.agents.length > 0} fallback={<text fg={theme.muted}>no agents</text>}>
+                {(() => {
+                  const agents = fromCLI()!.agents
+                  const maxVisible = visibleRows()
+                  const start = Math.max(0, Math.min(cursor() - Math.floor(maxVisible / 2), agents.length - maxVisible))
+                  const end = Math.min(agents.length, start + maxVisible)
+                  const visible = agents.slice(start, end)
+                  return <>
+                    <Show when={start > 0}><text fg={theme.muted}>  ↑ {start} more</text></Show>
+                    <For each={visible}>
+                      {(agent, vi) => {
+                        const i = () => start + vi()
+                        return (
+                          <text
+                            fg={cursor() === i() && panel() === "from" ? theme.accent : theme.fg}
+                            onMouseDown={() => {
+                              setCursor(i())
+                              setPanel("from")
+                              setSelected((s) => {
+                                const next = new Set(s)
+                                next.has(agent.name) ? next.delete(agent.name) : next.add(agent.name)
+                                return next
+                              })
+                            }}
+                            onMouseOver={() => { setCursor(i()); setPanel("from") }}
+                          >
+                            {selected().has(agent.name) ? "◉ " : "○ "}
+                            <span fg={theme.muted}>{agent._scope === "project" ? "[P] " : "[G] "}</span>
+                            {agent.name}
+                          </text>
+                        )
+                      }}
+                    </For>
+                    <Show when={end < agents.length}><text fg={theme.muted}>  ↓ {agents.length - end} more</text></Show>
+                  </>
+                })()}
+              </Show>
+            </Show>
+          </box>
+
+          {/* Arrow */}
+          <box width={7} alignItems="center" justifyContent="center">
+            <box
+              border
+              borderStyle="rounded"
+              borderColor={selected().size > 0 ? theme.accent : theme.border}
+              paddingLeft={1}
+              paddingRight={1}
+              onMouseDown={() => { if (selected().size > 0) handleAgentsTransfer() }}
+            >
+              <text fg={selected().size > 0 ? theme.accent : theme.muted}>{transferring() ? "..." : "►"}</text>
+            </box>
+          </box>
+
+          {/* TO agents panel */}
+          <box
+            flexGrow={1}
+            border
+            borderStyle="rounded"
+            borderColor={panel() === "to" ? theme.accent : theme.border}
+            paddingLeft={1}
+            paddingRight={1}
+            flexDirection="column"
+            onMouseDown={() => setPanel("to")}
+          >
+            <text fg={theme.muted}>{t.to}</text>
+            <Show when={toCLI()}>
+              <box flexDirection="row" gap={1}>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() - 1 + clis.length) % clis.length
+                    if (next === fromIdx()) next = (next - 1 + clis.length) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮜</text>
+                <text fg={theme.fg}>{toCLI()!.adapter.name}</text>
+                <text
+                  fg={theme.muted}
+                  onMouseDown={() => {
+                    const clis = installedCLIs()
+                    let next = (toIdx() + 1) % clis.length
+                    if (next === fromIdx()) next = (next + 1) % clis.length
+                    setToIdx(next)
+                  }}
+                >⮞</text>
+              </box>
+              <box height={1} />
+              <Show when={toCLI()!.agents.length > 0} fallback={<text fg={theme.muted}>no agents</text>}>
+                <For each={toCLI()!.agents}>
+                  {(agent) => (
+                    <text fg={theme.fg}>
+                      <span fg={theme.success}>● </span>
+                      {agent.name}
                     </text>
                   )}
                 </For>
