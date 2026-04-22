@@ -1,10 +1,34 @@
 import { createSignal, createMemo, For, Show, onMount } from "solid-js"
 import { useKeyboard } from "@opentui/solid"
+import { statSync } from "node:fs"
 import { useTheme } from "../context/theme"
 import { useApp } from "../context/app"
 import { KEYBINDS, matchKey } from "../context/keybind"
 import { StatusBar } from "../components/status-bar"
 import { BackupManager, type BackupEntry } from "../../config/backup"
+
+function formatAge(d: Date): string {
+  const ms = Date.now() - d.getTime()
+  const hours = Math.floor(ms / (60 * 60 * 1000))
+  if (hours < 1) return "<1h ago"
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function getBackupSize(path: string): string {
+  try {
+    return formatBytes(statSync(path).size)
+  } catch {
+    return "?"
+  }
+}
 
 export function Backups() {
   const theme = useTheme()
@@ -90,7 +114,8 @@ export function Backups() {
           <box height={1} />
           <text fg={theme.muted}>Details: {selected()!.adapterId}</text>
           <text fg={theme.muted}>  Original: {selected()!.originalPath}</text>
-          <text fg={theme.muted}>  Created: {selected()!.createdAt.toISOString()}</text>
+          <text fg={theme.muted}>  Size: {getBackupSize(selected()!.backupPath)}</text>
+          <text fg={theme.muted}>  Created: {formatAge(selected()!.createdAt)}</text>
         </Show>
 
         <Show when={confirm()}>
