@@ -136,7 +136,56 @@ export function Transfer() {
   }
 
   const handleAgentsTransfer = async () => {
-    // Implementation added in Task 14
+    const from = fromCLI()
+    const to = toCLI()
+    if (selected().size === 0 || !from || !to) return
+    setTransferring(true)
+    setToastMsg("")
+
+    const ok: string[] = []
+    const fail: Array<{ name: string; reason: string }> = []
+
+    for (const name of selected()) {
+      const agent = from.agents.find((a) => a.name === name)
+      if (!agent) { fail.push({ name, reason: "not found" }); continue }
+      try {
+        const { getAllCLIDefs } = await import("../../adapters/detector")
+        const def = getAllCLIDefs().find((d) => d.id === to.adapter.id)
+        if (!def) { fail.push({ name, reason: "unknown target" }); continue }
+
+        let targetDir: string | null = null
+        if (def.projectAgentsPath && state.projectRoot) {
+          targetDir = def.projectAgentsPath(state.projectRoot)[0]
+        } else if (def.agentsPath) {
+          targetDir = def.agentsPath()[0]
+        }
+
+        if (!targetDir) { fail.push({ name, reason: "no agents path for target" }); continue }
+
+        const { join } = await import("node:path")
+        const targetPath = join(targetDir, agent.name)
+
+        const { existsSync } = await import("node:fs")
+        if (existsSync(targetPath)) {
+          const backup = new BackupManager()
+          await backup.create(to.adapter.id, targetPath)
+        }
+
+        await to.adapter.writeAgentFile(agent.content, targetPath)
+        ok.push(name)
+      } catch (e) {
+        fail.push({ name, reason: e instanceof Error ? e.message : "unknown error" })
+      }
+    }
+
+    setSelected(new Set())
+    setTransferring(false)
+    await actions.refresh()
+    const parts: string[] = []
+    if (ok.length > 0) parts.push(`✓ ${ok.length} transferred: ${ok.join(", ")}`)
+    for (const f of fail) parts.push(`✗ ${f.name}: ${f.reason}`)
+    setToastType(fail.length > 0 ? "error" : "success")
+    setToastMsg(parts.join("  "))
   }
 
   const handleSkillsTransfer = async () => {
