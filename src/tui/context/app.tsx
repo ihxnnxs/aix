@@ -1,7 +1,7 @@
 import { createContext, useContext } from "solid-js"
 import type { ParentProps } from "solid-js"
 import { createStore } from "solid-js/store"
-import type { Adapter, MCPServer, DetectResult, RulesFile, SkillFile } from "../../adapters/types"
+import type { Adapter, MCPServer, DetectResult, RulesFile, SkillFile, AgentFile } from "../../adapters/types"
 
 export type Route = "home" | "list" | "transfer" | "settings"
 
@@ -11,6 +11,7 @@ export interface CLIState {
   servers: MCPServer[]
   rules: RulesFile[]
   skills: SkillFile[]
+  agents: AgentFile[]
 }
 
 export interface AppState {
@@ -56,7 +57,11 @@ export function AppProvider(props: ParentProps<{ adapters: Adapter[]; projectRoo
         if (detection.installed) {
           try { skills = await adapter.getSkillFiles() } catch {}
         }
-        clis.push({ adapter, detection, servers, rules, skills })
+        let agents: AgentFile[] = []
+        if (detection.installed) {
+          try { agents = await adapter.getAgentFiles() } catch {}
+        }
+        clis.push({ adapter, detection, servers, rules, skills, agents })
       }
       setState({ clis, loading: false })
     },
