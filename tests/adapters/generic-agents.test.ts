@@ -123,3 +123,43 @@ describe("GenericMCPAdapter.getAgentFiles", () => {
     expect(agents[0].content).toContain("日本語")
   })
 })
+
+describe("GenericMCPAdapter.writeAgentFile", () => {
+  test("creates nested directories", async () => {
+    const targetPath = join(tmp, "deeply", "nested", "agents", "new.md")
+    const adapter = new GenericMCPAdapter(makeDef(join(tmp, "unused")))
+    await adapter.writeAgentFile("---\nname: new\n---\nbody", targetPath)
+
+    const content = await Bun.file(targetPath).text()
+    expect(content).toBe("---\nname: new\n---\nbody")
+  })
+
+  test("overwrites existing file", async () => {
+    const dir = join(tmp, "agents")
+    mkdirSync(dir, { recursive: true })
+    const targetPath = join(dir, "existing.md")
+    writeFileSync(targetPath, "old content")
+
+    const adapter = new GenericMCPAdapter(makeDef(dir))
+    await adapter.writeAgentFile("new content", targetPath)
+
+    const content = await Bun.file(targetPath).text()
+    expect(content).toBe("new content")
+  })
+
+  test("roundtrip: scan -> write -> scan preserves content", async () => {
+    const dir = join(tmp, "agents")
+    mkdirSync(dir, { recursive: true })
+    const original = "---\nname: rt\ndescription: Roundtrip\ntools:\n  - Read\n  - Grep\n---\n\n# Roundtrip test\n\nbody ⭐"
+    writeFileSync(join(dir, "rt.md"), original)
+
+    const adapter = new GenericMCPAdapter(makeDef(dir))
+    const agents = await adapter.getAgentFiles("global")
+
+    const targetPath = join(tmp, "copied.md")
+    await adapter.writeAgentFile(agents[0].content, targetPath)
+
+    const roundtripped = await Bun.file(targetPath).text()
+    expect(roundtripped).toBe(original)
+  })
+})

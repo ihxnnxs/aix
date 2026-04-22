@@ -148,6 +148,13 @@ export class GenericMCPAdapter implements Adapter {
     await Bun.write(targetPath, content)
   }
 
+  async writeAgentFile(content: string, targetPath: string): Promise<void> {
+    const { mkdirSync } = await import("node:fs")
+    const { dirname } = await import("node:path")
+    mkdirSync(dirname(targetPath), { recursive: true })
+    await Bun.write(targetPath, content)
+  }
+
   private async scanRules(scope: "global" | "project"): Promise<RulesFile[]> {
     const paths = scope === "global"
       ? this.def.rulesPath?.() ?? []
