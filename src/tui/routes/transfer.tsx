@@ -1,5 +1,5 @@
 import { createSignal, createMemo, For, Show } from "solid-js"
-import type { RulesFile, SkillFile } from "../../adapters/types"
+import type { RulesFile, SkillFile, TransferPlan } from "../../adapters/types"
 import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
 import { useTheme } from "../context/theme"
 import { useApp, type CLIState } from "../context/app"
@@ -8,6 +8,56 @@ import { StatusBar } from "../components/status-bar"
 import { WarningPanel } from "../components/warning-panel"
 import { BackupManager } from "../../config/backup"
 import { getStrings } from "../i18n"
+import { planAgentTransfer, planRulesTransfer, planSkillTransfer, planMCPTransfer } from "../../utils/plan"
+
+async function buildPlansFor(
+  kind: "mcp" | "rules" | "skills" | "agents",
+  from: CLIState,
+  to: CLIState,
+  selected: Set<string>,
+  projectRoot: string | null,
+): Promise<TransferPlan[]> {
+  const { getAllCLIDefs } = await import("../../adapters/detector")
+  const { join } = await import("node:path")
+  const def = getAllCLIDefs().find((d) => d.id === to.adapter.id)
+  if (!def) return []
+  const plans: TransferPlan[] = []
+  for (const name of selected) {
+    if (kind === "agents") {
+      const agent = from.agents.find((a) => a.name === name)
+      if (!agent) continue
+      const targetDir = (projectRoot && def.projectAgentsPath)
+        ? def.projectAgentsPath(projectRoot)[0]
+        : def.agentsPath?.()[0]
+      if (!targetDir) continue
+      plans.push(planAgentTransfer(agent.name, join(targetDir, agent.name)))
+    } else if (kind === "rules") {
+      const rule = from.rules.find((r) => r.name === name)
+      if (!rule) continue
+      const targetPath = (projectRoot && def.projectRulesPath)
+        ? def.projectRulesPath(projectRoot)[0]
+        : def.rulesPath?.()[0]
+      if (!targetPath) continue
+      plans.push(planRulesTransfer(rule.name, targetPath))
+    } else if (kind === "skills") {
+      const skill = from.skills.find((s) => s.name === name)
+      if (!skill) continue
+      const targetDir = (projectRoot && def.projectSkillsPath)
+        ? def.projectSkillsPath(projectRoot)[0]
+        : def.skillsPath?.()[0]
+      if (!targetDir) continue
+      plans.push(planSkillTransfer(skill.name, join(targetDir, skill.name, "SKILL.md")))
+    } else if (kind === "mcp") {
+      const server = from.servers.find((s) => s.name === name)
+      if (!server) continue
+      const targetPath = (projectRoot && def.projectPaths)
+        ? def.projectPaths(projectRoot)[0]
+        : def.paths()[0]
+      plans.push(planMCPTransfer(server.name, targetPath))
+    }
+  }
+  return plans
+}
 
 export function Transfer() {
   const theme = useTheme()
@@ -26,6 +76,7 @@ export function Transfer() {
   const [toastType, setToastType] = createSignal<"success" | "error">("success")
   const [targetScope, setTargetScope] = createSignal<"global" | "project">("global")
   const [tab, setTab] = createSignal<"mcp" | "rules" | "skills" | "agents">("mcp")
+  const [dryRun, setDryRun] = createSignal(false)
   const dims = useTerminalDimensions()
   const visibleRows = createMemo(() => Math.max(5, dims().height - 10))
 
@@ -54,6 +105,14 @@ export function Transfer() {
     const from = fromCLI()
     const to = toCLI()
     if (selected().size === 0 || !from || !to) return
+    if (dryRun()) {
+      const { formatPlan } = await import("../../utils/plan")
+      const plans = await buildPlansFor("mcp", from, to, selected(), state.projectRoot)
+      setToastMsg(formatPlan(plans))
+      setToastType("success")
+      setSelected(new Set())
+      return
+    }
     setTransferring(true)
     setToastMsg("")
     const backup = new BackupManager()
@@ -88,6 +147,14 @@ export function Transfer() {
     const from = fromCLI()
     const to = toCLI()
     if (selected().size === 0 || !from || !to) return
+    if (dryRun()) {
+      const { formatPlan } = await import("../../utils/plan")
+      const plans = await buildPlansFor("rules", from, to, selected(), state.projectRoot)
+      setToastMsg(formatPlan(plans))
+      setToastType("success")
+      setSelected(new Set())
+      return
+    }
     setTransferring(true)
     setToastMsg("")
 
@@ -139,6 +206,14 @@ export function Transfer() {
     const from = fromCLI()
     const to = toCLI()
     if (selected().size === 0 || !from || !to) return
+    if (dryRun()) {
+      const { formatPlan } = await import("../../utils/plan")
+      const plans = await buildPlansFor("agents", from, to, selected(), state.projectRoot)
+      setToastMsg(formatPlan(plans))
+      setToastType("success")
+      setSelected(new Set())
+      return
+    }
     setTransferring(true)
     setToastMsg("")
 
@@ -192,6 +267,14 @@ export function Transfer() {
     const from = fromCLI()
     const to = toCLI()
     if (selected().size === 0 || !from || !to) return
+    if (dryRun()) {
+      const { formatPlan } = await import("../../utils/plan")
+      const plans = await buildPlansFor("skills", from, to, selected(), state.projectRoot)
+      setToastMsg(formatPlan(plans))
+      setToastType("success")
+      setSelected(new Set())
+      return
+    }
     setTransferring(true)
     setToastMsg("")
 
@@ -246,6 +329,7 @@ export function Transfer() {
     if (key.name === "2") { setTab("rules"); setCursor(0); setSelected(new Set()) }
     if (key.name === "3") { setTab("skills"); setCursor(0); setSelected(new Set()) }
     if (key.name === "4") { setTab("agents"); setCursor(0); setSelected(new Set()) }
+    if (key.name === "d") setDryRun((v) => !v)
     if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
     if (matchKey(key, KEYBINDS.nextPanel)) { setPanel((p) => p === "from" ? "to" : "from"); setCursor(0) }
 
@@ -351,6 +435,9 @@ export function Transfer() {
           </box>
         </box>
         <box flexGrow={1} />
+        <Show when={dryRun()}>
+          <text fg={theme.warning}>[DRY-RUN]</text>
+        </Show>
         <Show when={selected().size > 0}>
           <text fg={theme.accent}>{selected().size} {t.selected}</text>
         </Show>
@@ -906,6 +993,7 @@ export function Transfer() {
         { key: "2", label: "Rules" },
         { key: "3", label: "Skills" },
         { key: "4", label: "Agents" },
+        { key: "d", label: "dry-run" },
         { key: "⮜⮞", label: t.switchCli },
         { key: "space", label: t.select },
         { key: "⏎", label: t.transfer },
