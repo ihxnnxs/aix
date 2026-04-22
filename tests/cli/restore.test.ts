@@ -1,8 +1,11 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test"
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs"
-import { join } from "node:path"
+import { join, dirname, resolve } from "node:path"
 import { tmpdir } from "node:os"
+import { fileURLToPath } from "node:url"
 import { BackupManager } from "../../src/config/backup"
+
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 
 let tmp: string
 let backupDir: string
@@ -30,7 +33,7 @@ test("aix restore <id> restores file", async () => {
   const proc = Bun.spawn([
     "bun", "run", "src/index.ts", "restore", id,
   ], {
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
     env: { ...process.env, HOME: home },
     stdout: "pipe", stderr: "pipe",
   })
@@ -49,7 +52,7 @@ test("aix restore <invalid-id> exits 1 with error", async () => {
   const proc = Bun.spawn([
     "bun", "run", "src/index.ts", "restore", "not-a-real-id",
   ], {
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
     env: { ...process.env, HOME: home },
     stdout: "pipe", stderr: "pipe",
   })
@@ -69,7 +72,7 @@ test("aix restore --list prints entries", async () => {
   const proc = Bun.spawn([
     "bun", "run", "src/index.ts", "restore", "--list",
   ], {
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
     env: { ...process.env, HOME: home },
     stdout: "pipe",
   })
@@ -85,7 +88,7 @@ test("aix restore --list empty prints message", async () => {
   const proc = Bun.spawn([
     "bun", "run", "src/index.ts", "restore", "--list",
   ], {
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
     env: { ...process.env, HOME: home },
     stdout: "pipe",
   })
@@ -108,7 +111,7 @@ test("aix restore --prune 0 removes all", async () => {
   const proc = Bun.spawn([
     "bun", "run", "src/index.ts", "restore", "--prune", "0",
   ], {
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
     env: { ...process.env, HOME: home },
     stdout: "pipe",
   })

@@ -1,7 +1,10 @@
 import { describe, test, expect, beforeEach, afterEach } from "bun:test"
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, statSync } from "node:fs"
-import { join } from "node:path"
+import { join, dirname, resolve } from "node:path"
 import { tmpdir } from "node:os"
+import { fileURLToPath } from "node:url"
+
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 
 let tmp: string
 
@@ -34,7 +37,7 @@ test("transfer --dry-run prints plan without writing", async () => {
     env: { ...process.env, HOME: join(tmp, "home") },
     stdout: "pipe",
     stderr: "pipe",
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
   })
 
   const stdout = await new Response(proc.stdout).text()
@@ -59,7 +62,7 @@ test("transfer --dry-run for rules prints plan", async () => {
   ], {
     env: { ...process.env, HOME: join(tmp, "home") },
     stdout: "pipe", stderr: "pipe",
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
   })
 
   const stdout = await new Response(proc.stdout).text()
@@ -80,7 +83,7 @@ test("transfer --dry-run for skills prints plan", async () => {
   ], {
     env: { ...process.env, HOME: join(tmp, "home") },
     stdout: "pipe", stderr: "pipe",
-    cwd: "/home/hxnnxs/Projects/aix",
+    cwd: PROJECT_ROOT,
   })
 
   const stdout = await new Response(proc.stdout).text()

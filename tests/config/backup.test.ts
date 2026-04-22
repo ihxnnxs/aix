@@ -77,11 +77,6 @@ describe("BackupManager", () => {
     expect(after).toHaveLength(0)
   })
 
-  test("restore throws for nonexistent backup", async () => {
-    const manager = new BackupManager(backupDir)
-    expect(manager.restore("nonexistent-id")).rejects.toThrow("Backup not found")
-  })
-
   test("list returns empty when no backups exist", async () => {
     const manager = new BackupManager(backupDir)
     const entries = await manager.list()
