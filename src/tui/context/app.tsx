@@ -3,7 +3,7 @@ import type { ParentProps } from "solid-js"
 import { createStore } from "solid-js/store"
 import type { Adapter, MCPServer, DetectResult, RulesFile, SkillFile, AgentFile } from "../../adapters/types"
 
-export type Route = "home" | "list" | "transfer" | "settings"
+export type Route = "home" | "list" | "transfer" | "settings" | "backups"
 
 export interface CLIState {
   adapter: Adapter

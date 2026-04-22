@@ -10,6 +10,7 @@ import { Home } from "./routes/home"
 import { List } from "./routes/list"
 import { Transfer } from "./routes/transfer"
 import { Settings } from "./routes/settings"
+import { Backups } from "./routes/backups"
 
 function AppContent() {
   const theme = useTheme()
@@ -35,6 +36,9 @@ function AppContent() {
           </Match>
           <Match when={state.route === "settings"}>
             <Settings />
+          </Match>
+          <Match when={state.route === "backups"}>
+            <Backups />
           </Match>
         </Switch>
       </Show>
