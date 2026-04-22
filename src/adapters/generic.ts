@@ -1,7 +1,7 @@
 import * as jsonc from "jsonc-parser"
 import * as TOML from "smol-toml"
 import { existsSync } from "node:fs"
-import type { Adapter, AdapterCapabilities, DetectResult, MCPServer, RulesFile, SkillFile } from "./types"
+import type { Adapter, AdapterCapabilities, DetectResult, MCPServer, RulesFile, SkillFile, AgentFile } from "./types"
 import { createMCPServer } from "./types"
 import type { CLIDef } from "./detector"
 
@@ -263,6 +263,57 @@ export class GenericMCPAdapter implements Adapter {
               })
             } catch {}
           }
+        }
+      } catch {}
+    }
+    return files
+  }
+
+  async getAgentFiles(scope: "global" | "project" | "all" = "all"): Promise<AgentFile[]> {
+    const files: AgentFile[] = []
+    if (scope === "global" || scope === "all") {
+      files.push(...await this.scanAgents("global"))
+    }
+    if (scope === "project" || scope === "all") {
+      files.push(...await this.scanAgents("project"))
+    }
+    return files
+  }
+
+  private async scanAgents(scope: "global" | "project"): Promise<AgentFile[]> {
+    const paths = scope === "global"
+      ? this.def.agentsPath?.() ?? []
+      : (this.projectRoot && this.def.projectAgentsPath)
+        ? this.def.projectAgentsPath(this.projectRoot)
+        : []
+
+    const files: AgentFile[] = []
+    const { existsSync, readdirSync, statSync } = await import("node:fs")
+    const { join } = await import("node:path")
+
+    for (const p of paths) {
+      if (!existsSync(p)) continue
+      const stat = statSync(p)
+      if (!stat.isDirectory()) continue
+
+      try {
+        const entries = readdirSync(p)
+        for (const entry of entries) {
+          if (!entry.endsWith(".md")) continue
+          const filePath = join(p, entry)
+          try {
+            const content = await Bun.file(filePath).text()
+            const description = this.parseSkillDescription(content)
+            files.push({
+              name: entry,
+              path: filePath,
+              content,
+              lines: content.split("\n").length,
+              description,
+              _source: this.id,
+              _scope: scope,
+            })
+          } catch {}
         }
       } catch {}
     }
