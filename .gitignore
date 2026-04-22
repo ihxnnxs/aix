@@ -22,3 +22,6 @@ Thumbs.db
 
 # Build artifacts
 *.tgz
+
+# Local design docs and planning (not tracked)
+docs/
