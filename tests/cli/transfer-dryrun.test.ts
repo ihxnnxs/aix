@@ -46,3 +46,43 @@ test("transfer --dry-run prints plan without writing", async () => {
 
   expect(() => statSync(targetFile)).toThrow()
 })
+
+test("transfer --dry-run for rules prints plan", async () => {
+  const claudeDir = join(tmp, "home", ".claude")
+  mkdirSync(claudeDir, { recursive: true })
+  writeFileSync(join(claudeDir, "CLAUDE.md"), "# My rules\nBe precise.")
+
+  const proc = Bun.spawn([
+    "bun", "run", "src/index.ts",
+    "transfer", "--from", "claude-code", "--to", "cursor",
+    "--type", "rules", "--name", "CLAUDE.md", "--dry-run",
+  ], {
+    env: { ...process.env, HOME: join(tmp, "home") },
+    stdout: "pipe", stderr: "pipe",
+  })
+
+  const stdout = await new Response(proc.stdout).text()
+  await proc.exited
+  expect(proc.exitCode).toBe(0)
+  expect(stdout).toContain("[DRY-RUN]")
+})
+
+test("transfer --dry-run for skills prints plan", async () => {
+  const skillDir = join(tmp, "home", ".claude", "skills", "my-skill")
+  mkdirSync(skillDir, { recursive: true })
+  writeFileSync(join(skillDir, "SKILL.md"), "---\nname: my-skill\n---\nbody")
+
+  const proc = Bun.spawn([
+    "bun", "run", "src/index.ts",
+    "transfer", "--from", "claude-code", "--to", "cursor",
+    "--type", "skills", "--name", "my-skill", "--dry-run",
+  ], {
+    env: { ...process.env, HOME: join(tmp, "home") },
+    stdout: "pipe", stderr: "pipe",
+  })
+
+  const stdout = await new Response(proc.stdout).text()
+  await proc.exited
+  expect(proc.exitCode).toBe(0)
+  expect(stdout).toContain("[DRY-RUN]")
+})

@@ -2,7 +2,7 @@ import type { CommandModule } from "yargs"
 import { GenericMCPAdapter } from "../../adapters/generic"
 import { getAllCLIDefs } from "../../adapters/detector"
 import { findProjectRoot } from "../../utils/project"
-import { planAgentTransfer, formatPlan } from "../../utils/plan"
+import { planAgentTransfer, planRulesTransfer, planSkillTransfer, planMCPTransfer, formatPlan } from "../../utils/plan"
 import { BackupManager } from "../../config/backup"
 import { existsSync } from "node:fs"
 import { join } from "node:path"
@@ -88,8 +88,82 @@ async function runNonInteractive(args: any): Promise<void> {
     }
     await toAdapter.writeAgentFile(agent.content, targetPath)
     console.log(`✓ Transferred ${agent.name} to ${targetPath}`)
-  } else {
-    console.error(`Non-interactive mode for ${args.type} not yet implemented`)
-    process.exit(1)
+  } else if (args.type === "rules") {
+    const rules = await fromAdapter.getRulesFiles()
+    const rule = rules.find((r) => r.name === args.name)
+    if (!rule) {
+      console.error(`Rule not found: ${args.name}`)
+      process.exit(1)
+    }
+    const targetPath = args.scope === "project" && projectRoot && toDef.projectRulesPath
+      ? toDef.projectRulesPath(projectRoot)[0]
+      : (toDef.rulesPath?.()[0] ?? (projectRoot && toDef.projectRulesPath ? toDef.projectRulesPath(projectRoot)[0] : undefined))
+    if (!targetPath) {
+      console.error(`Target tool ${toDef.id} does not support rules`)
+      process.exit(1)
+    }
+    plans.push(planRulesTransfer(rule.name, targetPath))
+
+    if (args["dry-run"]) {
+      console.log(formatPlan(plans))
+      return
+    }
+
+    if (existsSync(targetPath)) {
+      await new BackupManager().create(toDef.id, targetPath)
+    }
+    await toAdapter.writeRulesFile(rule.content, targetPath)
+    console.log(`✓ Transferred rule ${rule.name} to ${targetPath}`)
+
+  } else if (args.type === "skills") {
+    const skills = await fromAdapter.getSkillFiles()
+    const skill = skills.find((s) => s.name === args.name)
+    if (!skill) {
+      console.error(`Skill not found: ${args.name}`)
+      process.exit(1)
+    }
+    const targetDir = args.scope === "project" && projectRoot && toDef.projectSkillsPath
+      ? toDef.projectSkillsPath(projectRoot)[0]
+      : toDef.skillsPath?.()[0]
+    if (!targetDir) {
+      console.error(`Target tool ${toDef.id} does not support skills`)
+      process.exit(1)
+    }
+    const targetPath = join(targetDir, skill.name, "SKILL.md")
+    plans.push(planSkillTransfer(skill.name, targetPath))
+
+    if (args["dry-run"]) {
+      console.log(formatPlan(plans))
+      return
+    }
+
+    if (existsSync(targetPath)) {
+      await new BackupManager().create(toDef.id, targetPath)
+    }
+    await toAdapter.writeSkillFile(skill.content, targetPath)
+    console.log(`✓ Transferred skill ${skill.name} to ${targetPath}`)
+
+  } else if (args.type === "mcp") {
+    const servers = await fromAdapter.getMCPServers()
+    const server = servers.find((s) => s.name === args.name)
+    if (!server) {
+      console.error(`MCP server not found: ${args.name}`)
+      process.exit(1)
+    }
+    const targetPath = args.scope === "project" && projectRoot && toDef.projectPaths
+      ? toDef.projectPaths(projectRoot)[0]
+      : toDef.paths()[0]
+    plans.push(planMCPTransfer(server.name, targetPath))
+
+    if (args["dry-run"]) {
+      console.log(formatPlan(plans))
+      return
+    }
+
+    if (existsSync(targetPath)) {
+      await new BackupManager().create(toDef.id, targetPath)
+    }
+    await toAdapter.writeMCPServer(server, args.scope)
+    console.log(`✓ Transferred server ${server.name} to ${targetPath}`)
   }
 }
