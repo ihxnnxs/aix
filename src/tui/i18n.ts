@@ -6,6 +6,7 @@ export interface Strings {
   transfer: string
   list: string
   settings: string
+  backups: string
   marketplace: string
   soon: string
   back: string
@@ -39,6 +40,7 @@ const LANGS: Record<string, Strings> = {
     transfer: "Transfer",
     list: "List",
     settings: "Settings",
+    backups: "Backups",
     marketplace: "Marketplace",
     soon: "Soon...",
     back: "Back",
@@ -70,6 +72,7 @@ const LANGS: Record<string, Strings> = {
     transfer: "Трансфер",
     list: "Список",
     settings: "Настройки",
+    backups: "Резервные копии",
     marketplace: "Маркетплейс",
     soon: "Скоро...",
     back: "Назад",
@@ -101,6 +104,7 @@ const LANGS: Record<string, Strings> = {
     transfer: "传输",
     list: "列表",
     settings: "设置",
+    backups: "备份",
     marketplace: "市场",
     soon: "即将推出...",
     back: "返回",
@@ -132,6 +136,7 @@ const LANGS: Record<string, Strings> = {
     transfer: "転送",
     list: "リスト",
     settings: "設定",
+    backups: "バックアップ",
     marketplace: "マーケット",
     soon: "近日公開...",
     back: "戻る",
@@ -163,6 +168,7 @@ const LANGS: Record<string, Strings> = {
     transfer: "전송",
     list: "목록",
     settings: "설정",
+    backups: "백업",
     marketplace: "마켓플레이스",
     soon: "곧 출시...",
     back: "뒤로",

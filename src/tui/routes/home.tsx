@@ -27,6 +27,7 @@ export function Home() {
     { id: "transfer" as const, label: t.transfer, icon: "⇄" },
     { id: "list" as const, label: t.list, icon: "≡" },
     { id: "settings" as const, label: t.settings, icon: "⚙" },
+    { id: "backups" as const, label: t.backups, icon: "💾" },
   ]
   const [selected, setSelected] = createSignal(0)
   const [showTooltip, setShowTooltip] = createSignal(false)
