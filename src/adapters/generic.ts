@@ -14,6 +14,7 @@ export class GenericMCPAdapter implements Adapter {
     mcp: true,
     skills: false,
     rules: false,
+    agents: false,
   }
 
   private def: CLIDef

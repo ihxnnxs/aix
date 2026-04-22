@@ -40,6 +40,7 @@ export interface AdapterCapabilities {
   mcp: boolean
   skills: boolean
   rules: boolean
+  agents: boolean
   scopes?: ("user" | "project")[]
 }
 
@@ -58,6 +59,8 @@ export interface Adapter {
   writeRulesFile(content: string, targetPath: string): Promise<void>
   getSkillFiles(scope?: "global" | "project" | "all"): Promise<SkillFile[]>
   writeSkillFile(content: string, targetPath: string): Promise<void>
+  getAgentFiles(scope?: "global" | "project" | "all"): Promise<AgentFile[]>
+  writeAgentFile(content: string, targetPath: string): Promise<void>
 }
 
 export interface AgentFile {
