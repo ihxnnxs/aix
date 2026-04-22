@@ -12,14 +12,15 @@ export function List() {
   const [state, actions] = useApp()
   const t = getStrings()
   const dims = useTerminalDimensions()
-  const [tab, setTab] = createSignal<"mcp" | "rules" | "skills">("mcp")
+  const [tab, setTab] = createSignal<"mcp" | "rules" | "skills" | "agents">("mcp")
 
   const stats = createMemo(() => {
     const installed = state.clis.filter((c) => c.detection.installed).length
     const totalMcp = state.clis.reduce((sum, c) => sum + c.servers.length, 0)
     const totalRules = state.clis.reduce((sum, c) => sum + c.rules.length, 0)
     const totalSkills = state.clis.reduce((sum, c) => sum + c.skills.length, 0)
-    return { installed, totalMcp, totalRules, totalSkills }
+    const totalAgents = state.clis.reduce((sum, c) => sum + c.agents.length, 0)
+    return { installed, totalMcp, totalRules, totalSkills, totalAgents }
   })
 
   const cardWidth = createMemo(() => Math.floor((dims().width - 4) / 2) - 1)
@@ -28,6 +29,7 @@ export function List() {
     if (key.name === "1") setTab("mcp")
     if (key.name === "2") setTab("rules")
     if (key.name === "3") setTab("skills")
+    if (key.name === "4") setTab("agents")
     if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
     if (key.name === "t") actions.navigate("transfer")
   })
@@ -77,10 +79,18 @@ export function List() {
           >
             <text fg={tab() === "skills" ? theme.bg : theme.muted}>Skills</text>
           </box>
+          <box
+            paddingLeft={2}
+            paddingRight={2}
+            backgroundColor={tab() === "agents" ? theme.accent : theme.border}
+            onMouseDown={() => setTab("agents")}
+          >
+            <text fg={tab() === "agents" ? theme.bg : theme.muted}>Agents</text>
+          </box>
         </box>
         <box flexGrow={1} />
         <text fg={theme.muted}>
-          {stats().installed} CLI · {tab() === "mcp" ? `${stats().totalMcp} MCP` : tab() === "rules" ? `${stats().totalRules} rules` : `${stats().totalSkills} skills`}
+          {stats().installed} CLI · {tab() === "mcp" ? `${stats().totalMcp} MCP` : tab() === "rules" ? `${stats().totalRules} rules` : tab() === "skills" ? `${stats().totalSkills} skills` : `${stats().totalAgents} agents`}
         </text>
       </box>
 
@@ -93,6 +103,7 @@ export function List() {
         { key: "1", label: "MCP" },
         { key: "2", label: "Rules" },
         { key: "3", label: "Skills" },
+        { key: "4", label: "Agents" },
         { key: "t", label: t.transfer },
         { key: "esc", label: t.back },
         { key: "q", label: t.quit },

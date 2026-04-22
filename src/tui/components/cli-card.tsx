@@ -5,7 +5,7 @@ import { useApp } from "../context/app"
 import type { CLIState } from "../context/app"
 import { getStrings } from "../i18n"
 
-export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "rules" | "skills" }) {
+export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "rules" | "skills" | "agents" }) {
   const theme = useTheme()
   const [state] = useApp()
   const t = getStrings()
@@ -18,6 +18,7 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
     if (!props.cli.detection.installed) return theme.border
     if (props.mode === "rules") return props.cli.rules.length > 0 ? theme.accent : theme.border
     if (props.mode === "skills") return props.cli.skills.length > 0 ? theme.accent : theme.border
+    if (props.mode === "agents") return props.cli.agents.length > 0 ? theme.accent : theme.border
     if (props.cli.servers.length === 0) return theme.border
     return theme.accent
   }
@@ -41,7 +42,7 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
       <Show when={!props.cli.detection.installed}>
         <text fg={theme.muted}>{t.notFound}</text>
       </Show>
-      <Show when={props.mode !== "rules" && props.mode !== "skills"}>
+      <Show when={props.mode !== "rules" && props.mode !== "skills" && props.mode !== "agents"}>
         <Show when={props.cli.detection.installed && props.cli.servers.length === 0}>
           <text fg={theme.muted}>{t.noServers}</text>
         </Show>
@@ -131,6 +132,41 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
                   <span fg={theme.success}>● </span>
                   {skill.name}
                   <span fg={theme.muted}>{skill.description ? ` — ${skill.description}` : ` (${skill.lines} lines)`}</span>
+                </text>
+              ))}
+            </Show>
+          </Show>
+        </Show>
+      </Show>
+      <Show when={props.mode === "agents"}>
+        <Show when={props.cli.agents.length === 0}>
+          <text fg={theme.muted}>no agents</text>
+        </Show>
+        <Show when={props.cli.agents.length > 0}>
+          <box height={1} />
+          <Show when={!!state.projectRoot && (props.cli.agents.some((a) => a._scope === "global") || props.cli.agents.some((a) => a._scope === "project"))} fallback={
+            props.cli.agents.map((agent) => (
+              <text fg={theme.fg}>
+                <span fg={theme.success}>● </span>
+                {agent.name}
+              </text>
+            ))
+          }>
+            <Show when={props.cli.agents.some((a) => a._scope === "global")}>
+              <text fg={theme.muted}>{t.global} ({props.cli.agents.filter((a) => a._scope === "global").length})</text>
+              {props.cli.agents.filter((a) => a._scope === "global").map((agent) => (
+                <text fg={theme.fg}>
+                  <span fg={theme.success}>● </span>
+                  {agent.name}
+                </text>
+              ))}
+            </Show>
+            <Show when={props.cli.agents.some((a) => a._scope === "project")}>
+              <text fg={theme.muted}>{t.project} ({props.cli.agents.filter((a) => a._scope === "project").length})</text>
+              {props.cli.agents.filter((a) => a._scope === "project").map((agent) => (
+                <text fg={theme.fg}>
+                  <span fg={theme.success}>● </span>
+                  {agent.name}
                 </text>
               ))}
             </Show>
