@@ -5,6 +5,7 @@ import { DoctorCommand } from "./cli/commands/doctor"
 import { ListCommand } from "./cli/commands/list"
 import { TransferCommand } from "./cli/commands/transfer"
 import { UpdateCommand } from "./cli/commands/update"
+import { RestoreCommand } from "./cli/commands/restore"
 import { VERSION } from "./version"
 import { findProjectRoot } from "./utils/project"
 
@@ -24,6 +25,7 @@ if (args.length === 0) {
     .command(ListCommand)
     .command(TransferCommand)
     .command(UpdateCommand)
+    .command(RestoreCommand)
     .version(VERSION)
     .help()
     .demandCommand(1, "Run aix --help to see available commands")
