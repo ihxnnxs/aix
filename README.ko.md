@@ -34,6 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 aix              # 인터랙티브 TUI 실행
 aix list         # 모든 도구의 MCP 서버 보기
 aix transfer     # 도구 간 MCP 서버 전송
+aix restore      # 백업 목록 및 복원
 aix doctor       # 도구 감지 진단
 ```
 

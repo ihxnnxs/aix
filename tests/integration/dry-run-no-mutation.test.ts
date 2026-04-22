@@ -28,7 +28,7 @@ test("aix transfer --dry-run makes no fs writes", async () => {
     ], {
       cwd: PROJECT_ROOT,
       env: { ...process.env, HOME: home },
-      stdout: "pipe",
+      stdout: "ignore",
     })
     await proc.exited
     expect(proc.exitCode).toBe(0)
