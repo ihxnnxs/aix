@@ -7,7 +7,7 @@ import { StatusBar } from "../components/status-bar"
 import { KVStore } from "../../config/store"
 import { getStrings, getAllLanguages } from "../i18n"
 
-type SettingsView = "menu" | "language" | "theme"
+type SettingsView = "menu" | "language" | "theme" | "skipBootAnimation"
 
 export function Settings() {
   const theme = useTheme()
@@ -25,10 +25,14 @@ export function Settings() {
   const [langCursor, setLangCursor] = createSignal(
     Math.max(0, languages.findIndex((l) => l.id === (store.get<string>("language") ?? "en")))
   )
+  const [skipBootCursor, setSkipBootCursor] = createSignal(
+    store.get<boolean>("skipBootAnimation") ?? false ? 1 : 0
+  )
 
   const MENU_ITEMS = [
     { id: "language" as const, label: t.language, icon: "🌐" },
     { id: "theme" as const, label: t.theme, icon: "◆" },
+    { id: "skipBootAnimation" as const, label: t.skipBootAnimation, icon: "▶" },
     { id: "back" as const, label: t.back, icon: "⮜" },
   ]
 
@@ -66,6 +70,16 @@ export function Settings() {
       if (matchKey(key, KEYBINDS.select) || matchKey(key, KEYBINDS.toggle)) {
         store.set("language", languages[langCursor()].id)
         actions.navigate("home")
+      }
+    }
+
+    if (v === "skipBootAnimation") {
+      if (matchKey(key, KEYBINDS.up) || matchKey(key, KEYBINDS.down)) {
+        setSkipBootCursor((c) => (c === 0 ? 1 : 0))
+      }
+      if (matchKey(key, KEYBINDS.select) || matchKey(key, KEYBINDS.toggle)) {
+        store.set("skipBootAnimation", skipBootCursor() === 1)
+        setView("menu")
       }
     }
   })
@@ -146,6 +160,51 @@ export function Settings() {
                     {th.name}
                   </text>
                   <text fg={th.accent}>■</text>
+                </box>
+              )
+            })}
+          </box>
+        </Show>
+
+        {/* Skip boot animation view */}
+        <Show when={view() === "skipBootAnimation"}>
+          <box
+            border
+            borderStyle="rounded"
+            borderColor={theme.accent}
+            flexDirection="column"
+            paddingLeft={2}
+            paddingRight={2}
+            paddingTop={1}
+            paddingBottom={1}
+            width={36}
+          >
+            <text fg={theme.accent}>{t.skipBootAnimation}</text>
+            <box height={1} />
+            {[
+              { label: "Off", value: false },
+              { label: "On", value: true },
+            ].map((opt, i) => {
+              const saved = store.get<boolean>("skipBootAnimation") ?? false
+              const isActive = saved === opt.value
+              return (
+                <box
+                  height={1}
+                  width={30}
+                  paddingLeft={1}
+                  paddingRight={1}
+                  backgroundColor={skipBootCursor() === i ? theme.border : undefined}
+                  onMouseDown={() => { store.set("skipBootAnimation", opt.value); setView("menu") }}
+                  onMouseOver={() => setSkipBootCursor(i)}
+                  flexDirection="row"
+                  gap={1}
+                >
+                  <text fg={isActive ? theme.accent : skipBootCursor() === i ? theme.fg : theme.muted}>
+                    {isActive ? "●" : "○"}
+                  </text>
+                  <text fg={isActive ? theme.accent : skipBootCursor() === i ? theme.fg : theme.muted}>
+                    {opt.label}
+                  </text>
                 </box>
               )
             })}

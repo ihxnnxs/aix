@@ -24,6 +24,7 @@ export interface Strings {
   updateAvailable: string
   update: string
   later: string
+  skipBootAnimation: string
   allYourAiTools: string
   noServers: string
   notFound: string
@@ -58,6 +59,7 @@ const LANGS: Record<string, Strings> = {
     updateAvailable: "Update Available",
     update: "Update",
     later: "Later",
+    skipBootAnimation: "Skip Boot Animation",
     allYourAiTools: "All your AI tools, one place",
     noServers: "no servers",
     notFound: "not found",
@@ -90,6 +92,7 @@ const LANGS: Record<string, Strings> = {
     updateAvailable: "Доступно обновление",
     update: "Обновить",
     later: "Позже",
+    skipBootAnimation: "Пропускать анимацию запуска",
     allYourAiTools: "Все AI инструменты в одном месте",
     noServers: "нет серверов",
     notFound: "не найден",
@@ -122,6 +125,7 @@ const LANGS: Record<string, Strings> = {
     updateAvailable: "有可用更新",
     update: "更新",
     later: "稍后",
+    skipBootAnimation: "跳过启动动画",
     allYourAiTools: "所有 AI 工具，尽在一处",
     noServers: "无服务器",
     notFound: "未找到",
@@ -154,6 +158,7 @@ const LANGS: Record<string, Strings> = {
     updateAvailable: "アップデートあり",
     update: "更新",
     later: "後で",
+    skipBootAnimation: "起動アニメーションをスキップ",
     allYourAiTools: "すべてのAIツールを一箇所に",
     noServers: "サーバーなし",
     notFound: "見つかりません",
@@ -186,6 +191,7 @@ const LANGS: Record<string, Strings> = {
     updateAvailable: "업데이트 가능",
     update: "업데이트",
     later: "나중에",
+    skipBootAnimation: "부팅 애니메이션 건 너기",
     allYourAiTools: "모든 AI 도구를 한 곳에서",
     noServers: "서버 없음",
     notFound: "찾을 수 없음",
