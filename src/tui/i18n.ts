@@ -23,6 +23,9 @@ export interface Strings {
   language: string
   updateAvailable: string
   update: string
+  updating: string
+  updateDone: string
+  updateFailed: string
   later: string
   skipBootAnimation: string
   allYourAiTools: string
@@ -58,6 +61,9 @@ const LANGS: Record<string, Strings> = {
     language: "Language",
     updateAvailable: "Update Available",
     update: "Update",
+    updating: "Updating...",
+    updateDone: "Updated! Restart aix.",
+    updateFailed: "Update failed",
     later: "Later",
     skipBootAnimation: "Skip Boot Animation",
     allYourAiTools: "All your AI tools, one place",
@@ -91,6 +97,9 @@ const LANGS: Record<string, Strings> = {
     language: "Язык",
     updateAvailable: "Доступно обновление",
     update: "Обновить",
+    updating: "Обновление...",
+    updateDone: "Обновлено! Перезапустите aix.",
+    updateFailed: "Ошибка обновления",
     later: "Позже",
     skipBootAnimation: "Пропускать анимацию запуска",
     allYourAiTools: "Все AI инструменты в одном месте",
@@ -124,6 +133,9 @@ const LANGS: Record<string, Strings> = {
     language: "语言",
     updateAvailable: "有可用更新",
     update: "更新",
+    updating: "正在更新...",
+    updateDone: "已更新！请重启 aix。",
+    updateFailed: "更新失败",
     later: "稍后",
     skipBootAnimation: "跳过启动动画",
     allYourAiTools: "所有 AI 工具，尽在一处",
@@ -157,6 +169,9 @@ const LANGS: Record<string, Strings> = {
     language: "言語",
     updateAvailable: "アップデートあり",
     update: "更新",
+    updating: "更新中...",
+    updateDone: "更新完了！aixを再起動してください。",
+    updateFailed: "更新に失敗しました",
     later: "後で",
     skipBootAnimation: "起動アニメーションをスキップ",
     allYourAiTools: "すべてのAIツールを一箇所に",
@@ -190,6 +205,9 @@ const LANGS: Record<string, Strings> = {
     language: "언어",
     updateAvailable: "업데이트 가능",
     update: "업데이트",
+    updating: "업데이트 중...",
+    updateDone: "업데이트 완료! aix를 다시 시작하세요.",
+    updateFailed: "업데이트 실패",
     later: "나중에",
     skipBootAnimation: "부팅 애니메이션 건 너기",
     allYourAiTools: "모든 AI 도구를 한 곳에서",

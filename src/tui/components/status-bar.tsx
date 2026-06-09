@@ -11,10 +11,7 @@ export function StatusBar(props: StatusBarProps) {
     <box width="100%" height={1} flexDirection="row" gap={2} backgroundColor={theme.border} paddingLeft={1}>
       <For each={props.hints}>
         {(hint) => (
-          <text>
-            <span fg={theme.accent}>{hint.key}</span>
-            <span fg={theme.muted}> {hint.label}</span>
-          </text>
+          <text fg={theme.muted}>{hint.key} {hint.label}</text>
         )}
       </For>
     </box>

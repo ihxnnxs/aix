@@ -1,7 +1,7 @@
 import * as jsonc from "jsonc-parser"
 import * as TOML from "smol-toml"
 import { existsSync } from "node:fs"
-import type { Adapter, AdapterCapabilities, DetectResult, MCPServer, RulesFile, SkillFile, AgentFile } from "./types"
+import type { Adapter, AdapterCapabilities, ConfigScope, DetectResult, MCPServer, ReadScope, RulesFile, SkillFile, AgentFile } from "./types"
 import { createMCPServer } from "./types"
 import type { CLIDef } from "./detector"
 
@@ -10,12 +10,7 @@ export class GenericMCPAdapter implements Adapter {
   name: string
   icon: string
   hasProjectScope: boolean
-  capabilities: AdapterCapabilities = {
-    mcp: true,
-    skills: false,
-    rules: false,
-    agents: false,
-  }
+  capabilities: AdapterCapabilities
 
   private def: CLIDef
   private projectRoot: string | null
@@ -29,9 +24,13 @@ export class GenericMCPAdapter implements Adapter {
     this.icon = def.icon
     this.projectRoot = projectRoot ?? null
     this.hasProjectScope = !!def.projectPaths && !!this.projectRoot
+    this.capabilities = this.buildCapabilities()
   }
 
   async detect(): Promise<DetectResult> {
+    this.globalConfigPath = null
+    this.projectConfigPath = null
+
     for (const p of this.def.paths()) {
       if (existsSync(p)) {
         this.globalConfigPath = p
@@ -46,14 +45,18 @@ export class GenericMCPAdapter implements Adapter {
         }
       }
     }
-    const installed = !!this.globalConfigPath || !!this.projectConfigPath
+    const assetPath = this.findExistingPath([
+      ...this.getAssetPaths("global"),
+      ...this.getAssetPaths("project"),
+    ])
+    const installed = !!this.globalConfigPath || !!this.projectConfigPath || !!assetPath
     return {
       installed,
-      configPath: this.globalConfigPath ?? this.projectConfigPath ?? null,
+      configPath: this.globalConfigPath ?? this.projectConfigPath ?? assetPath,
     }
   }
 
-  async getMCPServers(scope: "global" | "project" | "all" = "all"): Promise<MCPServer[]> {
+  async getMCPServers(scope: ReadScope = "all"): Promise<MCPServer[]> {
     const servers: MCPServer[] = []
     if (scope === "global" || scope === "all") {
       servers.push(...await this.readServers("global"))
@@ -64,10 +67,11 @@ export class GenericMCPAdapter implements Adapter {
     return servers
   }
 
-  async writeMCPServer(server: MCPServer, scope: "global" | "project" = "global"): Promise<void> {
+  async writeMCPServer(server: MCPServer, scope: ConfigScope = "global"): Promise<void> {
     const path = this.getWritePath(scope)
     if (!path) throw new Error(`${this.name} does not support ${scope} scope`)
     const keyPath = this.getServerKey(scope)
+    await this.ensureParentDir(path)
 
     if (this.def.configFormat === "toml") {
       let text = await this.readFile(path) ?? ""
@@ -89,7 +93,7 @@ export class GenericMCPAdapter implements Adapter {
     }
   }
 
-  async removeMCPServer(name: string, scope: "global" | "project" = "global"): Promise<void> {
+  async removeMCPServer(name: string, scope: ConfigScope = "global"): Promise<void> {
     const path = this.getWritePath(scope)
     if (!path) return
     const text = await this.readFile(path)
@@ -113,7 +117,7 @@ export class GenericMCPAdapter implements Adapter {
     }
   }
 
-  async getRulesFiles(scope: "global" | "project" | "all" = "all"): Promise<RulesFile[]> {
+  async getRulesFiles(scope: ReadScope = "all"): Promise<RulesFile[]> {
     const files: RulesFile[] = []
     if (scope === "global" || scope === "all") {
       files.push(...await this.scanRules("global"))
@@ -124,7 +128,7 @@ export class GenericMCPAdapter implements Adapter {
     return files
   }
 
-  async getSkillFiles(scope: "global" | "project" | "all" = "all"): Promise<SkillFile[]> {
+  async getSkillFiles(scope: ReadScope = "all"): Promise<SkillFile[]> {
     const files: SkillFile[] = []
     if (scope === "global" || scope === "all") {
       files.push(...await this.scanSkills("global"))
@@ -156,7 +160,7 @@ export class GenericMCPAdapter implements Adapter {
     await Bun.write(targetPath, content)
   }
 
-  private async scanRules(scope: "global" | "project"): Promise<RulesFile[]> {
+  private async scanRules(scope: ConfigScope): Promise<RulesFile[]> {
     const paths = scope === "global"
       ? this.def.rulesPath?.() ?? []
       : (this.projectRoot && this.def.projectRulesPath)
@@ -207,7 +211,7 @@ export class GenericMCPAdapter implements Adapter {
     return files
   }
 
-  private async scanSkills(scope: "global" | "project"): Promise<SkillFile[]> {
+  private async scanSkills(scope: ConfigScope): Promise<SkillFile[]> {
     const paths = scope === "global"
       ? this.def.skillsPath?.() ?? []
       : (this.projectRoot && this.def.projectSkillsPath)
@@ -277,7 +281,7 @@ export class GenericMCPAdapter implements Adapter {
     return files
   }
 
-  async getAgentFiles(scope: "global" | "project" | "all" = "all"): Promise<AgentFile[]> {
+  async getAgentFiles(scope: ReadScope = "all"): Promise<AgentFile[]> {
     const files: AgentFile[] = []
     if (scope === "global" || scope === "all") {
       files.push(...await this.scanAgents("global"))
@@ -288,7 +292,7 @@ export class GenericMCPAdapter implements Adapter {
     return files
   }
 
-  private async scanAgents(scope: "global" | "project"): Promise<AgentFile[]> {
+  private async scanAgents(scope: ConfigScope): Promise<AgentFile[]> {
     const paths = scope === "global"
       ? this.def.agentsPath?.() ?? []
       : (this.projectRoot && this.def.projectAgentsPath)
@@ -343,7 +347,7 @@ export class GenericMCPAdapter implements Adapter {
     return jsonc.parse(text)
   }
 
-  private async readServers(scope: "global" | "project"): Promise<MCPServer[]> {
+  private async readServers(scope: ConfigScope): Promise<MCPServer[]> {
     const path = scope === "global" ? this.globalConfigPath : this.projectConfigPath
     if (!path) return []
     const text = await this.readFile(path)
@@ -361,12 +365,12 @@ export class GenericMCPAdapter implements Adapter {
     )
   }
 
-  private getServerKey(scope: "global" | "project"): string {
+  private getServerKey(scope: ConfigScope): string {
     if (scope === "project" && this.def.projectServerKey) return this.def.projectServerKey
     return this.def.serverKey ?? "mcpServers"
   }
 
-  private getWritePath(scope: "global" | "project"): string | null {
+  private getWritePath(scope: ConfigScope): string | null {
     if (scope === "global") {
       return this.globalConfigPath ?? this.def.paths()[0]
     }
@@ -378,5 +382,49 @@ export class GenericMCPAdapter implements Adapter {
     const file = Bun.file(path)
     if (!(await file.exists())) return null
     return file.text()
+  }
+
+  private buildCapabilities(): AdapterCapabilities {
+    const hasProjectAssets = !!this.projectRoot && !!(
+      this.def.projectPaths ||
+      this.def.projectRulesPath ||
+      this.def.projectSkillsPath ||
+      this.def.projectAgentsPath
+    )
+
+    return {
+      mcp: true,
+      rules: !!(this.def.rulesPath || this.def.projectRulesPath),
+      skills: !!(this.def.skillsPath || this.def.projectSkillsPath),
+      agents: !!(this.def.agentsPath || this.def.projectAgentsPath),
+      scopes: hasProjectAssets ? ["global", "project"] : ["global"],
+    }
+  }
+
+  private getAssetPaths(scope: ConfigScope): string[] {
+    if (scope === "global") {
+      return [
+        ...(this.def.rulesPath?.() ?? []),
+        ...(this.def.skillsPath?.() ?? []),
+        ...(this.def.agentsPath?.() ?? []),
+      ]
+    }
+
+    if (!this.projectRoot) return []
+    return [
+      ...(this.def.projectRulesPath?.(this.projectRoot) ?? []),
+      ...(this.def.projectSkillsPath?.(this.projectRoot) ?? []),
+      ...(this.def.projectAgentsPath?.(this.projectRoot) ?? []),
+    ]
+  }
+
+  private findExistingPath(paths: string[]): string | null {
+    return paths.find((p) => existsSync(p)) ?? null
+  }
+
+  private async ensureParentDir(path: string): Promise<void> {
+    const { mkdirSync } = await import("node:fs")
+    const { dirname } = await import("node:path")
+    mkdirSync(dirname(path), { recursive: true })
   }
 }

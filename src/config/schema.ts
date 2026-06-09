@@ -3,12 +3,12 @@ import { z } from "zod"
 export const MCPServerEntrySchema = z.object({
   command: z.string().optional(),
   args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   url: z.string().optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
 }).passthrough()
 
-export const MCPServersMapSchema = z.record(MCPServerEntrySchema)
+export const MCPServersMapSchema = z.record(z.string(), MCPServerEntrySchema)
 
 export const StandardConfigSchema = z.object({
   mcpServers: MCPServersMapSchema.optional(),

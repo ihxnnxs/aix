@@ -3,5 +3,5 @@ import type { MCPServer } from "../../adapters/types"
 
 export function MCPItem(props: { server: MCPServer }) {
   const theme = useTheme()
-  return <text fg={theme.fg}><span fg={theme.success}>● </span>{props.server.name}</text>
+  return <text fg={theme.fg}>● {props.server.name}</text>
 }

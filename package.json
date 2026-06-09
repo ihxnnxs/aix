@@ -1,6 +1,6 @@
 {
   "name": "@ihxnnxs/aix",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "type": "module",
   "bin": {
     "aix": "./bin/aix"
@@ -21,18 +21,16 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/yargs": "^17.0.35"
-  },
-  "peerDependencies": {
-    "typescript": "^6.0.2"
+    "@types/yargs": "^17.0.35",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@opentui/core": "^0.1.97",
-    "@opentui/solid": "^0.1.97",
+    "@opentui/core": "^0.1.107",
+    "@opentui/solid": "^0.1.107",
     "jsonc-parser": "^3.3.1",
     "smol-toml": "^1.6.1",
-    "solid-js": "^1.9.12",
+    "solid-js": "^1.9.13",
     "yargs": "^18.0.0",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   }
 }

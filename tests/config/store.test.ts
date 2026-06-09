@@ -25,7 +25,7 @@ describe("KVStore", () => {
   test("set and get round-trips", () => {
     const store = new KVStore(storePath)
     store.set("theme", "dark")
-    expect(store.get("theme")).toBe("dark")
+    expect(store.get<string>("theme")).toBe("dark")
   })
 
   test("persists across instances", () => {
@@ -33,13 +33,13 @@ describe("KVStore", () => {
     store1.set("animations", true)
 
     const store2 = new KVStore(storePath)
-    expect(store2.get("animations")).toBe(true)
+    expect(store2.get<boolean>("animations")).toBe(true)
   })
 
   test("delete removes key", () => {
     const store = new KVStore(storePath)
     store.set("key", "value")
-    expect(store.get("key")).toBe("value")
+    expect(store.get<string>("key")).toBe("value")
 
     store.delete("key")
     expect(store.get("key")).toBeUndefined()
@@ -51,7 +51,7 @@ describe("KVStore", () => {
     store.set("deep", 42)
 
     const reloaded = new KVStore(nested)
-    expect(reloaded.get("deep")).toBe(42)
+    expect(reloaded.get<number>("deep")).toBe(42)
   })
 
   test("handles complex values", () => {
@@ -60,6 +60,6 @@ describe("KVStore", () => {
     store.set("complex", value)
 
     const store2 = new KVStore(storePath)
-    expect(store2.get("complex")).toEqual(value)
+    expect(store2.get<typeof value>("complex")).toEqual(value)
   })
 })

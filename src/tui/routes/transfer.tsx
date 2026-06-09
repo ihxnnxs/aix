@@ -70,7 +70,7 @@ export function Transfer() {
   const [fromIdx, setFromIdx] = createSignal(0)
   const [toIdx, setToIdx] = createSignal(1)
   const [cursor, setCursor] = createSignal(0)
-  const [selected, setSelected] = createSignal<Set<string>>(new Set())
+  const [selected, setSelected] = createSignal<Set<string>>(new Set<string>())
   const [transferring, setTransferring] = createSignal(false)
   const [toastMsg, setToastMsg] = createSignal("")
   const [toastType, setToastType] = createSignal<"success" | "error">("success")
@@ -110,7 +110,7 @@ export function Transfer() {
       const plans = await buildPlansFor("mcp", from, to, selected(), state.projectRoot)
       setToastMsg(formatPlan(plans))
       setToastType("success")
-      setSelected(new Set())
+      setSelected(new Set<string>())
       return
     }
     setTransferring(true)
@@ -133,7 +133,7 @@ export function Transfer() {
         fail.push({ name, reason: e instanceof Error ? e.message : "unknown error" })
       }
     }
-    setSelected(new Set())
+    setSelected(new Set<string>())
     setTransferring(false)
     await actions.refresh()
     const parts: string[] = []
@@ -152,7 +152,7 @@ export function Transfer() {
       const plans = await buildPlansFor("rules", from, to, selected(), state.projectRoot)
       setToastMsg(formatPlan(plans))
       setToastType("success")
-      setSelected(new Set())
+      setSelected(new Set<string>())
       return
     }
     setTransferring(true)
@@ -192,7 +192,7 @@ export function Transfer() {
       }
     }
 
-    setSelected(new Set())
+    setSelected(new Set<string>())
     setTransferring(false)
     await actions.refresh()
     const parts: string[] = []
@@ -211,7 +211,7 @@ export function Transfer() {
       const plans = await buildPlansFor("agents", from, to, selected(), state.projectRoot)
       setToastMsg(formatPlan(plans))
       setToastType("success")
-      setSelected(new Set())
+      setSelected(new Set<string>())
       return
     }
     setTransferring(true)
@@ -253,7 +253,7 @@ export function Transfer() {
       }
     }
 
-    setSelected(new Set())
+    setSelected(new Set<string>())
     setTransferring(false)
     await actions.refresh()
     const parts: string[] = []
@@ -272,7 +272,7 @@ export function Transfer() {
       const plans = await buildPlansFor("skills", from, to, selected(), state.projectRoot)
       setToastMsg(formatPlan(plans))
       setToastType("success")
-      setSelected(new Set())
+      setSelected(new Set<string>())
       return
     }
     setTransferring(true)
@@ -314,7 +314,7 @@ export function Transfer() {
       }
     }
 
-    setSelected(new Set())
+    setSelected(new Set<string>())
     setTransferring(false)
     await actions.refresh()
     const parts: string[] = []
@@ -325,10 +325,10 @@ export function Transfer() {
   }
 
   useKeyboard((key: any) => {
-    if (key.name === "1") { setTab("mcp"); setCursor(0); setSelected(new Set()) }
-    if (key.name === "2") { setTab("rules"); setCursor(0); setSelected(new Set()) }
-    if (key.name === "3") { setTab("skills"); setCursor(0); setSelected(new Set()) }
-    if (key.name === "4") { setTab("agents"); setCursor(0); setSelected(new Set()) }
+    if (key.name === "1") { setTab("mcp"); setCursor(0); setSelected(new Set<string>()) }
+    if (key.name === "2") { setTab("rules"); setCursor(0); setSelected(new Set<string>()) }
+    if (key.name === "3") { setTab("skills"); setCursor(0); setSelected(new Set<string>()) }
+    if (key.name === "4") { setTab("agents"); setCursor(0); setSelected(new Set<string>()) }
     if (key.name === "d") setDryRun((v) => !v)
     if (matchKey(key, KEYBINDS.back)) actions.navigate("home")
     if (matchKey(key, KEYBINDS.nextPanel)) { setPanel((p) => p === "from" ? "to" : "from"); setCursor(0) }
@@ -405,7 +405,7 @@ export function Transfer() {
             paddingLeft={2}
             paddingRight={2}
             backgroundColor={tab() === "mcp" ? theme.accent : theme.border}
-            onMouseDown={() => { setTab("mcp"); setCursor(0); setSelected(new Set()) }}
+            onMouseDown={() => { setTab("mcp"); setCursor(0); setSelected(new Set<string>()) }}
           >
             <text fg={tab() === "mcp" ? theme.bg : theme.muted}>MCP</text>
           </box>
@@ -413,7 +413,7 @@ export function Transfer() {
             paddingLeft={2}
             paddingRight={2}
             backgroundColor={tab() === "rules" ? theme.accent : theme.border}
-            onMouseDown={() => { setTab("rules"); setCursor(0); setSelected(new Set()) }}
+            onMouseDown={() => { setTab("rules"); setCursor(0); setSelected(new Set<string>()) }}
           >
             <text fg={tab() === "rules" ? theme.bg : theme.muted}>Rules</text>
           </box>
@@ -421,7 +421,7 @@ export function Transfer() {
             paddingLeft={2}
             paddingRight={2}
             backgroundColor={tab() === "skills" ? theme.accent : theme.border}
-            onMouseDown={() => { setTab("skills"); setCursor(0); setSelected(new Set()) }}
+            onMouseDown={() => { setTab("skills"); setCursor(0); setSelected(new Set<string>()) }}
           >
             <text fg={tab() === "skills" ? theme.bg : theme.muted}>Skills</text>
           </box>
@@ -429,7 +429,7 @@ export function Transfer() {
             paddingLeft={2}
             paddingRight={2}
             backgroundColor={tab() === "agents" ? theme.accent : theme.border}
-            onMouseDown={() => { setTab("agents"); setCursor(0); setSelected(new Set()) }}
+            onMouseDown={() => { setTab("agents"); setCursor(0); setSelected(new Set<string>()) }}
           >
             <text fg={tab() === "agents" ? theme.bg : theme.muted}>Agents</text>
           </box>
@@ -562,7 +562,7 @@ export function Transfer() {
               </Show>
               <box height={1} />
               <For each={toCLI()!.servers}>
-                {(server) => <text fg={theme.fg}><span fg={theme.success}>● </span>{server.name}</text>}
+                {(server) => <text fg={theme.fg}>● {server.name}</text>}
               </For>
             </Show>
           </box>
@@ -623,9 +623,7 @@ export function Transfer() {
                       onMouseOver={() => { setCursor(i()); setPanel("from") }}
                     >
                       {selected().has(rule.name) ? "◉ " : "○ "}
-                      <span fg={theme.muted}>{rule._scope === "project" ? "[P] " : "[G] "}</span>
-                      {rule.name}
-                      <span fg={theme.muted}> ({rule.lines} lines)</span>
+                      {rule._scope === "project" ? "[P] " : "[G] "}{rule.name} ({rule.lines} lines)
                     </text>
                   )}
                 </For>
@@ -685,11 +683,7 @@ export function Transfer() {
               <Show when={toCLI()!.rules.length > 0} fallback={<text fg={theme.muted}>no rules</text>}>
                 <For each={toCLI()!.rules}>
                   {(rule) => (
-                    <text fg={theme.fg}>
-                      <span fg={theme.success}>● </span>
-                      {rule.name}
-                      <span fg={theme.muted}> ({rule.lines} lines)</span>
-                    </text>
+                    <text fg={theme.fg}>● {rule.name} ({rule.lines} lines)</text>
                   )}
                 </For>
               </Show>
@@ -762,8 +756,7 @@ export function Transfer() {
                             onMouseOver={() => { setCursor(i()); setPanel("from") }}
                           >
                             {selected().has(skill.name) ? "◉ " : "○ "}
-                            <span fg={theme.muted}>{skill._scope === "project" ? "[P] " : "[G] "}</span>
-                            {skill.name}
+                            {skill._scope === "project" ? "[P] " : "[G] "}{skill.name}
                           </text>
                         )
                       }}
@@ -827,10 +820,7 @@ export function Transfer() {
               <Show when={toCLI()!.skills.length > 0} fallback={<text fg={theme.muted}>no skills</text>}>
                 <For each={toCLI()!.skills}>
                   {(skill) => (
-                    <text fg={theme.fg}>
-                      <span fg={theme.success}>● </span>
-                      {skill.name}
-                    </text>
+                    <text fg={theme.fg}>● {skill.name}</text>
                   )}
                 </For>
               </Show>
@@ -903,8 +893,7 @@ export function Transfer() {
                             onMouseOver={() => { setCursor(i()); setPanel("from") }}
                           >
                             {selected().has(agent.name) ? "◉ " : "○ "}
-                            <span fg={theme.muted}>{agent._scope === "project" ? "[P] " : "[G] "}</span>
-                            {agent.name}
+                            {agent._scope === "project" ? "[P] " : "[G] "}{agent.name}
                           </text>
                         )
                       }}
@@ -968,10 +957,7 @@ export function Transfer() {
               <Show when={toCLI()!.agents.length > 0} fallback={<text fg={theme.muted}>no agents</text>}>
                 <For each={toCLI()!.agents}>
                   {(agent) => (
-                    <text fg={theme.fg}>
-                      <span fg={theme.success}>● </span>
-                      {agent.name}
-                    </text>
+                    <text fg={theme.fg}>● {agent.name}</text>
                   )}
                 </For>
               </Show>

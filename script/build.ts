@@ -62,12 +62,44 @@ function createBuildPlugin(): BunPlugin {
 
 const targets = [
   "bun-linux-x64",
+  "bun-linux-arm64",
   "bun-darwin-arm64",
   "bun-darwin-x64",
   "bun-windows-x64",
 ] as const
 
+function opentuiPackageName(target: typeof targets[number]): string {
+  const parts = target.split("-")
+  const os = parts[1] === "windows" ? "win32" : parts[1]
+  const arch = parts[2]
+  return `@opentui/core-${os}-${arch}`
+}
+
+async function ensureOpenTUIPlatformPackages(): Promise<void> {
+  const missing = []
+
+  for (const target of targets) {
+    const pkg = opentuiPackageName(target)
+    const exists = await Bun.file(`node_modules/${pkg}/package.json`).exists()
+    if (!exists) missing.push(pkg)
+  }
+
+  if (missing.length === 0) return
+
+  console.log(`Installing OpenTUI platform packages: ${missing.join(", ")}`)
+  const proc = Bun.spawn(["bun", "install", "--cpu", "*", "--os", "*"], {
+    stdout: "inherit",
+    stderr: "inherit",
+  })
+  const exitCode = await proc.exited
+  if (exitCode !== 0) throw new Error("Failed to install OpenTUI platform packages")
+}
+
 console.log("Building aix...")
+
+await ensureOpenTUIPlatformPackages()
+
+let failed = false
 
 for (const target of targets) {
   const parts = target.split("-")
@@ -99,14 +131,18 @@ for (const target of targets) {
       }
       console.log(`  ✓ ${desiredPath}`)
     } else {
+      failed = true
       console.error(`  ✗ ${target} failed:`)
       for (const log of result.logs) {
         console.error(`    ${log}`)
       }
     }
   } catch (e) {
+    failed = true
     console.error(`  ✗ ${target} failed: ${e instanceof Error ? e.message : e}`)
   }
 }
+
+if (failed) process.exit(1)
 
 console.log("\nDone!")

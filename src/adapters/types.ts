@@ -1,3 +1,6 @@
+export type ConfigScope = "global" | "project"
+export type ReadScope = ConfigScope | "all"
+
 export interface MCPServer {
   name: string
   transport: "stdio" | "http" | "sse"
@@ -8,7 +11,7 @@ export interface MCPServer {
   headers?: Record<string, string>
   _raw: Record<string, unknown>
   _source: string
-  _scope: "global" | "project"
+  _scope: ConfigScope
 }
 
 export interface RulesFile {
@@ -17,7 +20,7 @@ export interface RulesFile {
   content: string
   lines: number
   _source: string
-  _scope: "global" | "project"
+  _scope: ConfigScope
 }
 
 export interface SkillFile {
@@ -27,7 +30,7 @@ export interface SkillFile {
   lines: number
   description?: string
   _source: string
-  _scope: "global" | "project"
+  _scope: ConfigScope
 }
 
 export interface DetectResult {
@@ -41,7 +44,7 @@ export interface AdapterCapabilities {
   skills: boolean
   rules: boolean
   agents: boolean
-  scopes?: ("user" | "project")[]
+  scopes?: ConfigScope[]
 }
 
 export interface Adapter {
@@ -52,14 +55,14 @@ export interface Adapter {
   hasProjectScope: boolean
 
   detect(): Promise<DetectResult>
-  getMCPServers(): Promise<MCPServer[]>
-  writeMCPServer(server: MCPServer): Promise<void>
-  removeMCPServer(name: string): Promise<void>
-  getRulesFiles(scope?: "global" | "project" | "all"): Promise<RulesFile[]>
+  getMCPServers(scope?: ReadScope): Promise<MCPServer[]>
+  writeMCPServer(server: MCPServer, scope?: ConfigScope): Promise<void>
+  removeMCPServer(name: string, scope?: ConfigScope): Promise<void>
+  getRulesFiles(scope?: ReadScope): Promise<RulesFile[]>
   writeRulesFile(content: string, targetPath: string): Promise<void>
-  getSkillFiles(scope?: "global" | "project" | "all"): Promise<SkillFile[]>
+  getSkillFiles(scope?: ReadScope): Promise<SkillFile[]>
   writeSkillFile(content: string, targetPath: string): Promise<void>
-  getAgentFiles(scope?: "global" | "project" | "all"): Promise<AgentFile[]>
+  getAgentFiles(scope?: ReadScope): Promise<AgentFile[]>
   writeAgentFile(content: string, targetPath: string): Promise<void>
 }
 
@@ -70,7 +73,7 @@ export interface AgentFile {
   lines: number
   description?: string
   _source: string
-  _scope: "global" | "project"
+  _scope: ConfigScope
 }
 
 export interface TransferPlan {
@@ -86,7 +89,7 @@ export function createMCPServer(
   name: string,
   raw: Record<string, unknown>,
   source: string,
-  scope: "global" | "project" = "global",
+  scope: ConfigScope = "global",
 ): MCPServer {
   const hasUrl = typeof raw.url === "string"
   const transport: MCPServer["transport"] = hasUrl ? "http" : "stdio"

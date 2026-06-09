@@ -70,31 +70,19 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
           <box height={1} />
           <Show when={!!state.projectRoot && (props.cli.rules.some((r) => r._scope === "global") || props.cli.rules.some((r) => r._scope === "project"))} fallback={
             props.cli.rules.map((rule) => (
-              <text fg={theme.fg}>
-                <span fg={theme.success}>● </span>
-                {rule.name}
-                <span fg={theme.muted}> ({rule.lines} lines)</span>
-              </text>
+              <text fg={theme.fg}>● {rule.name} ({rule.lines} lines)</text>
             ))
           }>
             <Show when={props.cli.rules.some((r) => r._scope === "global")}>
               <text fg={theme.muted}>{t.global} ({props.cli.rules.filter((r) => r._scope === "global").length})</text>
               {props.cli.rules.filter((r) => r._scope === "global").map((rule) => (
-                <text fg={theme.fg}>
-                  <span fg={theme.success}>● </span>
-                  {rule.name}
-                  <span fg={theme.muted}> ({rule.lines} lines)</span>
-                </text>
+                <text fg={theme.fg}>● {rule.name} ({rule.lines} lines)</text>
               ))}
             </Show>
             <Show when={props.cli.rules.some((r) => r._scope === "project")}>
               <text fg={theme.muted}>{t.project} ({props.cli.rules.filter((r) => r._scope === "project").length})</text>
               {props.cli.rules.filter((r) => r._scope === "project").map((rule) => (
-                <text fg={theme.fg}>
-                  <span fg={theme.success}>● </span>
-                  {rule.name}
-                  <span fg={theme.muted}> ({rule.lines} lines)</span>
-                </text>
+                <text fg={theme.fg}>● {rule.name} ({rule.lines} lines)</text>
               ))}
             </Show>
           </Show>
@@ -108,31 +96,19 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
           <box height={1} />
           <Show when={!!state.projectRoot && (props.cli.skills.some((s) => s._scope === "global") || props.cli.skills.some((s) => s._scope === "project"))} fallback={
             props.cli.skills.map((skill) => (
-              <text fg={theme.fg}>
-                <span fg={theme.success}>● </span>
-                {skill.name}
-                <span fg={theme.muted}>{skill.description ? ` — ${skill.description}` : ` (${skill.lines} lines)`}</span>
-              </text>
+              <text fg={theme.fg}>● {skill.name}{skill.description ? ` - ${skill.description}` : ` (${skill.lines} lines)`}</text>
             ))
           }>
             <Show when={props.cli.skills.some((s) => s._scope === "global")}>
               <text fg={theme.muted}>{t.global} ({props.cli.skills.filter((s) => s._scope === "global").length})</text>
               {props.cli.skills.filter((s) => s._scope === "global").map((skill) => (
-                <text fg={theme.fg}>
-                  <span fg={theme.success}>● </span>
-                  {skill.name}
-                  <span fg={theme.muted}>{skill.description ? ` — ${skill.description}` : ` (${skill.lines} lines)`}</span>
-                </text>
+                <text fg={theme.fg}>● {skill.name}{skill.description ? ` - ${skill.description}` : ` (${skill.lines} lines)`}</text>
               ))}
             </Show>
             <Show when={props.cli.skills.some((s) => s._scope === "project")}>
               <text fg={theme.muted}>{t.project} ({props.cli.skills.filter((s) => s._scope === "project").length})</text>
               {props.cli.skills.filter((s) => s._scope === "project").map((skill) => (
-                <text fg={theme.fg}>
-                  <span fg={theme.success}>● </span>
-                  {skill.name}
-                  <span fg={theme.muted}>{skill.description ? ` — ${skill.description}` : ` (${skill.lines} lines)`}</span>
-                </text>
+                <text fg={theme.fg}>● {skill.name}{skill.description ? ` - ${skill.description}` : ` (${skill.lines} lines)`}</text>
               ))}
             </Show>
           </Show>
@@ -146,28 +122,19 @@ export function CLICard(props: { cli: CLIState; width?: number; mode?: "mcp" | "
           <box height={1} />
           <Show when={!!state.projectRoot && (props.cli.agents.some((a) => a._scope === "global") || props.cli.agents.some((a) => a._scope === "project"))} fallback={
             props.cli.agents.map((agent) => (
-              <text fg={theme.fg}>
-                <span fg={theme.success}>● </span>
-                {agent.name}
-              </text>
+              <text fg={theme.fg}>● {agent.name}</text>
             ))
           }>
             <Show when={props.cli.agents.some((a) => a._scope === "global")}>
               <text fg={theme.muted}>{t.global} ({props.cli.agents.filter((a) => a._scope === "global").length})</text>
               {props.cli.agents.filter((a) => a._scope === "global").map((agent) => (
-                <text fg={theme.fg}>
-                  <span fg={theme.success}>● </span>
-                  {agent.name}
-                </text>
+                <text fg={theme.fg}>● {agent.name}</text>
               ))}
             </Show>
             <Show when={props.cli.agents.some((a) => a._scope === "project")}>
               <text fg={theme.muted}>{t.project} ({props.cli.agents.filter((a) => a._scope === "project").length})</text>
               {props.cli.agents.filter((a) => a._scope === "project").map((agent) => (
-                <text fg={theme.fg}>
-                  <span fg={theme.success}>● </span>
-                  {agent.name}
-                </text>
+                <text fg={theme.fg}>● {agent.name}</text>
               ))}
             </Show>
           </Show>

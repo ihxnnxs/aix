@@ -1,5 +1,5 @@
 import { test, expect, beforeEach, afterEach } from "bun:test"
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, mkdirSync, rmSync, unlinkSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 import type { CLIDef } from "../../src/adapters/detector"
@@ -76,6 +76,68 @@ test("writes to project scope", async () => {
   const servers = await adapter.getMCPServers("project")
   expect(servers).toHaveLength(1)
   expect(servers[0].name).toBe("new")
+})
+
+test("writeMCPServer creates parent directories", async () => {
+  const nestedDef: CLIDef = {
+    ...testDef,
+    paths: () => [join(tmp, "nested", "config", "mcp.json")],
+  }
+  const adapter = new GenericMCPAdapter(nestedDef, null)
+  await adapter.detect()
+  await adapter.writeMCPServer({ name: "new", _raw: { command: "x" }, _scope: "global", _source: "test", transport: "stdio" })
+
+  const next = new GenericMCPAdapter(nestedDef, null)
+  await next.detect()
+  const servers = await next.getMCPServers("global")
+  expect(servers).toHaveLength(1)
+  expect(servers[0].name).toBe("new")
+})
+
+test("detects installed tool from rules-only path", async () => {
+  const rulePath = join(tmp, "RULES.md")
+  writeFileSync(rulePath, "rules")
+  const rulesOnlyDef: CLIDef = {
+    id: "rules-only",
+    name: "Rules Only",
+    icon: "RO",
+    paths: () => [join(tmp, "missing.json")],
+    rulesPath: () => [rulePath],
+  }
+
+  const adapter = new GenericMCPAdapter(rulesOnlyDef, null)
+  const result = await adapter.detect()
+
+  expect(result.installed).toBe(true)
+  expect(result.configPath).toBe(rulePath)
+})
+
+test("detect resets stale config paths", async () => {
+  const configPath = join(tmp, "global.json")
+  writeFileSync(configPath, JSON.stringify({ mcpServers: {} }))
+  const adapter = new GenericMCPAdapter(testDef, null)
+
+  expect((await adapter.detect()).installed).toBe(true)
+  unlinkSync(configPath)
+
+  const result = await adapter.detect()
+  expect(result.installed).toBe(false)
+  expect(result.configPath).toBeNull()
+})
+
+test("capabilities reflect configured asset paths", () => {
+  const adapter = new GenericMCPAdapter({
+    ...testDef,
+    rulesPath: () => [join(tmp, "RULES.md")],
+    skillsPath: () => [join(tmp, "skills")],
+    agentsPath: () => [join(tmp, "agents")],
+  }, tmp)
+
+  expect(adapter.capabilities.mcp).toBe(true)
+  expect(adapter.capabilities.rules).toBe(true)
+  expect(adapter.capabilities.skills).toBe(true)
+  expect(adapter.capabilities.agents).toBe(true)
+  expect(adapter.capabilities.scopes).toEqual(["global", "project"])
 })
 
 test("hasProjectScope is false without projectRoot", () => {
