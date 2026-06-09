@@ -26,6 +26,10 @@ jobs:
             target: bun-darwin-arm64
             artifact: aix-darwin-arm64
             dist: dist/aix-darwin-arm64
+          - os: macos-13
+            target: bun-darwin-x64
+            artifact: aix-darwin-x64
+            dist: dist/aix-darwin-x64
           - os: windows-latest
             target: bun-windows-x64
             artifact: aix-windows-x64
