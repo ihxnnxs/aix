@@ -33,6 +33,20 @@ else
   filename="${filename}.tar.gz"
 fi
 
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    return 1
+  fi
+}
+
+lowercase() {
+  printf '%s' "$1" | tr 'A-F' 'a-f'
+}
+
 requested_version=${VERSION:-}
 
 if [ -z "$requested_version" ]; then
@@ -51,9 +65,30 @@ echo -e "${GREEN}Installing aix ${YELLOW}${version}${GREEN} (${os}/${arch})...${
 
 mkdir -p "$INSTALL_DIR"
 tmpdir=$(mktemp -d)
-trap "rm -rf $tmpdir" EXIT
+trap 'rm -rf "$tmpdir"' EXIT
 
 curl -#fSL "$url" -o "$tmpdir/$filename"
+
+checksum_url="${url}.sha256"
+checksum_file="$tmpdir/$filename.sha256"
+if curl -fsSL "$checksum_url" -o "$checksum_file"; then
+  expected_checksum=$(sed -nE 's/.*([a-fA-F0-9]{64}).*/\1/p' "$checksum_file" | sed -n '1p')
+  if [ -z "$expected_checksum" ]; then
+    echo -e "${RED}Invalid checksum file: ${checksum_url}${NC}"
+    exit 1
+  fi
+  if ! actual_checksum=$(sha256_file "$tmpdir/$filename"); then
+    echo -e "${RED}Cannot verify checksum: sha256sum or shasum is required${NC}"
+    exit 1
+  fi
+  if [ "$(lowercase "$actual_checksum")" != "$(lowercase "$expected_checksum")" ]; then
+    echo -e "${RED}Checksum verification failed for ${filename}${NC}"
+    exit 1
+  fi
+  echo -e "${GREEN}Checksum verified.${NC}"
+else
+  echo -e "${YELLOW}Checksum file unavailable, continuing without verification.${NC}"
+fi
 
 if [[ "$os" == "windows" ]]; then
   unzip -q "$tmpdir/$filename" -d "$tmpdir"

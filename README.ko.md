@@ -32,7 +32,9 @@ curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 
 ```bash
 aix              # 인터랙티브 TUI 실행
-aix list         # 모든 도구의 MCP 서버 보기
+aix list         # MCP/rules/skills/agents 목록 출력
+aix list --json  # JSON으로 목록 출력
+aix list --tui   # 대화형 목록 열기
 aix transfer     # 도구 간 MCP 서버 전송
 aix restore      # 백업 목록 및 복원
 aix doctor       # 도구 감지 진단

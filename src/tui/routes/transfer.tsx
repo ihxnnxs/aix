@@ -8,7 +8,7 @@ import { StatusBar } from "../components/status-bar"
 import { WarningPanel } from "../components/warning-panel"
 import { BackupManager } from "../../config/backup"
 import { getStrings } from "../i18n"
-import { planAgentTransfer, planRulesTransfer, planSkillTransfer, planMCPTransfer } from "../../utils/plan"
+import { planAgentTransfer, planRulesTransfer, planSkillTransfer, planMCPTransfer, resolveSkillTargetPath } from "../../utils/plan"
 
 async function buildPlansFor(
   kind: "mcp" | "rules" | "skills" | "agents",
@@ -46,7 +46,7 @@ async function buildPlansFor(
         ? def.projectSkillsPath(projectRoot)[0]
         : def.skillsPath?.()[0]
       if (!targetDir) continue
-      plans.push(planSkillTransfer(skill.name, join(targetDir, skill.name, "SKILL.md")))
+      plans.push(planSkillTransfer(skill.name, resolveSkillTargetPath(targetDir, skill)))
     } else if (kind === "mcp") {
       const server = from.servers.find((s) => s.name === name)
       if (!server) continue
@@ -298,8 +298,7 @@ export function Transfer() {
 
         if (!targetDir) { fail.push({ name, reason: "no skills path for target" }); continue }
 
-        const { join } = await import("node:path")
-        const targetPath = join(targetDir, skill.name, "SKILL.md")
+        const targetPath = resolveSkillTargetPath(targetDir, skill)
 
         const { existsSync } = await import("node:fs")
         if (existsSync(targetPath)) {

@@ -1,5 +1,6 @@
 import { KVStore } from "../config/store"
 import { VERSION } from "../version"
+import { createHash } from "node:crypto"
 
 export interface UpdateInfo {
   current: string
@@ -24,6 +25,23 @@ export function shouldCheck(store: KVStore): boolean {
   const last = store.get<number>("lastUpdateCheck")
   if (!last) return true
   return Date.now() - last > CHECK_INTERVAL
+}
+
+export function sha256Hex(data: ArrayBuffer | Uint8Array): string {
+  const buffer = data instanceof ArrayBuffer
+    ? Buffer.from(data)
+    : Buffer.from(data.buffer, data.byteOffset, data.byteLength)
+  return createHash("sha256").update(buffer).digest("hex")
+}
+
+export function parseSha256Checksum(text: string, assetName: string): string | null {
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue
+    if (!line.includes(assetName) && text.split(/\r?\n/).filter(Boolean).length > 1) continue
+    const match = line.match(/\b[a-fA-F0-9]{64}\b/)
+    if (match) return match[0].toLowerCase()
+  }
+  return null
 }
 
 export async function checkForUpdate(store?: KVStore): Promise<UpdateInfo | null> {
@@ -73,10 +91,11 @@ export async function performUpdate(targetVersion: string): Promise<boolean> {
   const ext = os === "windows" ? ".zip" : ".tar.gz"
   const assetName = `aix-${os}-${arch}${ext}`
   const url = `https://github.com/${REPO}/releases/download/v${targetVersion}/${assetName}`
+  const checksumUrl = `${url}.sha256`
 
   try {
     const { mkdtempSync, copyFileSync, chmodSync, rmSync } = await import("node:fs")
-    const { join } = await import("node:path")
+    const { basename, join } = await import("node:path")
     const { tmpdir } = await import("node:os")
     const { execSync } = await import("node:child_process")
 
@@ -85,8 +104,13 @@ export async function performUpdate(targetVersion: string): Promise<boolean> {
     try {
       const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(120000) })
       if (!res.ok) return false
+      const checksumRes = await fetch(checksumUrl, { redirect: "follow", signal: AbortSignal.timeout(30000) })
+      if (!checksumRes.ok) return false
 
       const buf = await res.arrayBuffer()
+      const expectedChecksum = parseSha256Checksum(await checksumRes.text(), assetName)
+      if (!expectedChecksum || sha256Hex(buf) !== expectedChecksum) return false
+
       const archivePath = join(tmp, assetName)
       await Bun.write(archivePath, buf)
 
@@ -98,9 +122,10 @@ export async function performUpdate(targetVersion: string): Promise<boolean> {
 
       const newBin = join(tmp, os === "windows" ? "aix.exe" : "aix")
       const binPath = process.execPath
-      // Linux: can't overwrite running binary, so unlink first then rename
-      const { unlinkSync, renameSync } = await import("node:fs")
-      try { unlinkSync(binPath) } catch {}
+      const currentBinName = basename(binPath).toLowerCase()
+      if (currentBinName !== "aix" && currentBinName !== "aix.exe") return false
+
+      const { renameSync } = await import("node:fs")
       try {
         renameSync(newBin, binPath)
       } catch {

@@ -91,3 +91,25 @@ test("transfer --dry-run for skills prints plan", async () => {
   expect(proc.exitCode).toBe(0)
   expect(stdout).toContain("[DRY-RUN]")
 })
+
+test("transfer --dry-run keeps flat skills flat", async () => {
+  const skillDir = join(tmp, "home", ".claude", "skills")
+  mkdirSync(skillDir, { recursive: true })
+  writeFileSync(join(skillDir, "flat-skill.md"), "flat skill content")
+
+  const proc = Bun.spawn([
+    "bun", "run", "src/index.ts",
+    "transfer", "--from", "claude-code", "--to", "cursor",
+    "--type", "skills", "--name", "flat-skill.md", "--dry-run",
+  ], {
+    env: { ...process.env, HOME: join(tmp, "home") },
+    stdout: "pipe", stderr: "pipe",
+    cwd: PROJECT_ROOT,
+  })
+
+  const stdout = await new Response(proc.stdout).text()
+  await proc.exited
+  expect(proc.exitCode).toBe(0)
+  expect(stdout).toContain(join(tmp, "home", ".cursor", "skills", "flat-skill.md"))
+  expect(stdout).not.toContain("flat-skill.md/SKILL.md")
+})

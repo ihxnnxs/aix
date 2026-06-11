@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test"
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync, statSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
-import { planAgentTransfer, planRulesTransfer, formatPlan } from "../../src/utils/plan"
+import { planAgentTransfer, planRulesTransfer, formatPlan, resolveSkillTargetPath } from "../../src/utils/plan"
 
 let tmp: string
 
@@ -55,6 +55,22 @@ describe("planRulesTransfer", () => {
     const plan = planRulesTransfer("CLAUDE.md", targetPath)
     expect(plan.kind).toBe("rules")
     expect(plan.action).toBe("create")
+  })
+})
+
+describe("resolveSkillTargetPath", () => {
+  test("keeps directory skills in name/SKILL.md layout", () => {
+    const targetDir = join(tmp, "target-skills")
+    const sourcePath = join(tmp, "skills", "planner", "SKILL.md")
+    const path = resolveSkillTargetPath(targetDir, { name: "planner", path: sourcePath })
+    expect(path).toBe(join(targetDir, "planner", "SKILL.md"))
+  })
+
+  test("keeps flat skill files flat", () => {
+    const targetDir = join(tmp, "target-skills")
+    const sourcePath = join(tmp, "skills", "flat-skill.md")
+    const path = resolveSkillTargetPath(targetDir, { name: "flat-skill.md", path: sourcePath })
+    expect(path).toBe(join(targetDir, "flat-skill.md"))
   })
 })
 

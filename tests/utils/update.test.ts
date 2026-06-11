@@ -45,3 +45,23 @@ test("shouldCheck: returns true after 24h", async () => {
   store.set("lastUpdateCheck", Date.now() - 25 * 60 * 60 * 1000)
   expect(shouldCheck(store)).toBe(true)
 })
+
+test("sha256Hex returns expected digest", async () => {
+  const { sha256Hex } = await import("../../src/utils/update")
+  expect(sha256Hex(new TextEncoder().encode("aix"))).toBe("0b0b183ca6e7d20761400de5906a0cbfc31a648f134fb7bd5b24c7f63cca98dd")
+})
+
+test("parseSha256Checksum supports standard checksum files", async () => {
+  const { parseSha256Checksum } = await import("../../src/utils/update")
+  const checksum = "DCD5DD9DD3A1F6ADFA9162A9AA55FC9DC8D1838ED29F85A2368B165BF1ABF51B  aix-linux-x64.tar.gz\n"
+  expect(parseSha256Checksum(checksum, "aix-linux-x64.tar.gz")).toBe("dcd5dd9dd3a1f6adfa9162a9aa55fc9dc8d1838ed29f85a2368b165bf1abf51b")
+})
+
+test("parseSha256Checksum ignores other assets", async () => {
+  const { parseSha256Checksum } = await import("../../src/utils/update")
+  const checksum = [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa  aix-darwin-arm64.tar.gz",
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb  aix-linux-x64.tar.gz",
+  ].join("\n")
+  expect(parseSha256Checksum(checksum, "aix-linux-x64.tar.gz")).toBe("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+})

@@ -30,7 +30,9 @@ curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 
 ```bash
 aix              # Launch interactive TUI
-aix list         # View MCP servers and rules across tools
+aix list         # Print MCP/rules/skills/agents inventory
+aix list --json  # Print inventory as JSON
+aix list --tui   # Open interactive list view
 aix transfer     # Transfer between tools
 aix restore      # List/restore backups
 aix doctor       # Diagnose CLI tool detection

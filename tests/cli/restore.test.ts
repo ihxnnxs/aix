@@ -100,12 +100,10 @@ test("aix restore --list empty prints message", async () => {
   expect(stdout).toContain("No backups")
 })
 
-test("aix restore --prune 0 removes all", async () => {
+test("aix restore --prune 0 exits with error", async () => {
   const target = join(tmp, "c.json")
   writeFileSync(target, "x")
   const mgr = new BackupManager(backupDir)
-  await mgr.create("t", target)
-  await new Promise((r) => setTimeout(r, 10))
   await mgr.create("t", target)
 
   const proc = Bun.spawn([
@@ -114,12 +112,13 @@ test("aix restore --prune 0 removes all", async () => {
     cwd: PROJECT_ROOT,
     env: { ...process.env, HOME: home },
     stdout: "pipe",
+    stderr: "pipe",
   })
 
-  const stdout = await new Response(proc.stdout).text()
   await proc.exited
 
-  expect(proc.exitCode).toBe(0)
-  expect(stdout).toContain("2")
-  expect((await mgr.list()).length).toBe(0)
+  expect(proc.exitCode).toBe(1)
+  const stderr = await new Response(proc.stderr).text()
+  expect(stderr).toContain("greater than 0")
+  expect((await mgr.list()).length).toBe(1)
 })

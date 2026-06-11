@@ -2,7 +2,7 @@ import type { CommandModule } from "yargs"
 import { GenericMCPAdapter } from "../../adapters/generic"
 import { getAllCLIDefs } from "../../adapters/detector"
 import { findProjectRoot } from "../../utils/project"
-import { planAgentTransfer, planRulesTransfer, planSkillTransfer, planMCPTransfer, formatPlan } from "../../utils/plan"
+import { planAgentTransfer, planRulesTransfer, planSkillTransfer, planMCPTransfer, formatPlan, resolveSkillTargetPath } from "../../utils/plan"
 import { BackupManager } from "../../config/backup"
 import { existsSync } from "node:fs"
 import { join } from "node:path"
@@ -128,7 +128,7 @@ async function runNonInteractive(args: any): Promise<void> {
     if (!targetDir) {
       exitWithError(`Target tool ${toDef.id} does not support skills`)
     }
-    const targetPath = join(targetDir, skill.name, "SKILL.md")
+    const targetPath = resolveSkillTargetPath(targetDir, skill)
     plans.push(planSkillTransfer(skill.name, targetPath))
 
     if (args["dry-run"]) {

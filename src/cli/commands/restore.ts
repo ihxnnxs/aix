@@ -33,8 +33,12 @@ export const RestoreCommand: CommandModule = {
     }
 
     if (args.prune !== undefined) {
-      const removed = await mgr.prune(args.prune)
-      console.log(`Removed ${removed} backup${removed === 1 ? "" : "s"} older than ${args.prune} day${args.prune === 1 ? "" : "s"}`)
+      try {
+        const removed = await mgr.prune(args.prune)
+        console.log(`Removed ${removed} backup${removed === 1 ? "" : "s"} older than ${args.prune} day${args.prune === 1 ? "" : "s"}`)
+      } catch (e) {
+        exitWithError(e instanceof Error ? e.message : String(e))
+      }
       return
     }
 
@@ -69,8 +73,12 @@ export const RestoreCommand: CommandModule = {
     const n = parseInt(answer.trim(), 10)
     if (!n || n < 1 || n > entries.length) exitWithError("Invalid selection")
     const chosen = entries[n - 1]
-    await mgr.restore(chosen.id)
-    console.log(`Restored ${chosen.originalPath}`)
+    try {
+      await mgr.restore(chosen.id)
+      console.log(`Restored ${chosen.originalPath}`)
+    } catch (e) {
+      exitWithError(e instanceof Error ? e.message : String(e))
+    }
   },
 }
 

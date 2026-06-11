@@ -1,5 +1,6 @@
 import { existsSync, statSync } from "node:fs"
-import type { TransferPlan } from "../adapters/types"
+import { basename, dirname, join } from "node:path"
+import type { SkillFile, TransferPlan } from "../adapters/types"
 
 export function planAgentTransfer(sourceName: string, targetPath: string, warnings: string[] = []): TransferPlan {
   const exists = existsSync(targetPath)
@@ -35,6 +36,11 @@ export function planSkillTransfer(sourceName: string, targetPath: string, warnin
     existingSize: exists ? statSync(targetPath).size : undefined,
     warnings,
   }
+}
+
+export function resolveSkillTargetPath(targetDir: string, skill: Pick<SkillFile, "name" | "path">): string {
+  const isDirectorySkill = basename(skill.path) === "SKILL.md" && basename(dirname(skill.path)) === skill.name
+  return isDirectorySkill ? join(targetDir, skill.name, "SKILL.md") : join(targetDir, skill.name)
 }
 
 export function planMCPTransfer(sourceName: string, targetPath: string, warnings: string[] = []): TransferPlan {

@@ -32,7 +32,9 @@ curl -fsSL https://raw.githubusercontent.com/ihxnnxs/aix/main/install.sh | bash
 
 ```bash
 aix              # Запустить интерактивный TUI
-aix list         # Просмотр MCP серверов во всех инструментах
+aix list         # Вывести MCP/rules/skills/agents в терминал
+aix list --json  # Вывести список в JSON
+aix list --tui   # Открыть интерактивный список
 aix transfer     # Перенос MCP серверов между инструментами
 aix restore      # Список и восстановление резервных копий
 aix doctor       # Диагностика обнаружения инструментов

@@ -58,6 +58,10 @@ describe("BackupManager", () => {
 
     const afterRestore = await Bun.file(configPath).text()
     expect(afterRestore).toBe(originalData)
+
+    const safetyBackup = (await manager.list()).find((entry) => entry.id !== id)
+    expect(safetyBackup).toBeTruthy()
+    expect(await Bun.file(safetyBackup!.backupPath).text()).toBe(newData)
   })
 
   test("prune removes old backups", async () => {
@@ -67,10 +71,16 @@ describe("BackupManager", () => {
     const manager = new BackupManager(backupDir)
     await manager.create("cursor", configPath)
 
+    const entries = await manager.list()
+    const metaPath = join(backupDir, entries[0].id, "metadata.json")
+    const meta = await Bun.file(metaPath).json()
+    meta.createdAt = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+    await Bun.write(metaPath, JSON.stringify(meta))
+
     const before = await manager.list()
     expect(before).toHaveLength(1)
 
-    const removed = await manager.prune(0)
+    const removed = await manager.prune(1)
     expect(removed).toBe(1)
 
     const after = await manager.list()
@@ -86,6 +96,11 @@ describe("BackupManager", () => {
   test("restore() throws on nonexistent id", async () => {
     const manager = new BackupManager(backupDir)
     await expect(manager.restore("nonexistent-id")).rejects.toThrow("Backup not found")
+  })
+
+  test("restore() rejects path traversal backup ids", async () => {
+    const manager = new BackupManager(backupDir)
+    await expect(manager.restore("../outside")).rejects.toThrow("Invalid backup id")
   })
 
   test("restore() works when original path was deleted", async () => {
@@ -114,17 +129,10 @@ describe("BackupManager", () => {
     expect((await manager.list()).length).toBe(0)
   })
 
-  test("prune(0) removes all entries", async () => {
+  test("prune rejects non-positive age", async () => {
     const manager = new BackupManager(backupDir)
-    const original1 = join(tmpDir, "c1.json")
-    const original2 = join(tmpDir, "c2.json")
-    writeFileSync(original1, "x")
-    writeFileSync(original2, "y")
-    await manager.create("t", original1)
-    await new Promise((r) => setTimeout(r, 10))
-    await manager.create("t", original2)
-    const removed = await manager.prune(0)
-    expect(removed).toBe(2)
+    await expect(manager.prune(0)).rejects.toThrow("greater than 0")
+    await expect(manager.prune(-1)).rejects.toThrow("greater than 0")
   })
 
   test("list() returns [] when backups dir missing", async () => {
