@@ -35,7 +35,8 @@ aix list --json  # Print inventory as JSON
 aix list --tui   # Open interactive list view
 aix transfer     # Transfer between tools
 aix restore      # List/restore backups
-aix doctor       # Diagnose CLI tool detection
+aix doctor       # Diagnose config health and security risks
+aix doctor --json --strict
 ```
 
 ## Supported Tools

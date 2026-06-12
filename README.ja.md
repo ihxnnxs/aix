@@ -37,7 +37,8 @@ aix list --json  # 一覧を JSON で出力
 aix list --tui   # インタラクティブな一覧を開く
 aix transfer     # ツール間でMCPサーバーを転送
 aix restore      # バックアップの一覧と復元
-aix doctor       # ツール検出の診断
+aix doctor       # 設定の健全性とセキュリティリスクを診断
+aix doctor --json --strict
 ```
 
 ## 対応ツール

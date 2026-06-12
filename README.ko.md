@@ -37,7 +37,8 @@ aix list --json  # JSON으로 목록 출력
 aix list --tui   # 대화형 목록 열기
 aix transfer     # 도구 간 MCP 서버 전송
 aix restore      # 백업 목록 및 복원
-aix doctor       # 도구 감지 진단
+aix doctor       # 설정 상태와 보안 위험 진단
+aix doctor --json --strict
 ```
 
 ## 지원 도구

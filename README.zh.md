@@ -37,7 +37,8 @@ aix list --json  # 以 JSON 输出清单
 aix list --tui   # 打开交互式列表视图
 aix transfer     # 在工具之间传输 MCP 服务器
 aix restore      # 列出和恢复备份
-aix doctor       # 诊断工具检测
+aix doctor       # 诊断配置健康和安全风险
+aix doctor --json --strict
 ```
 
 ## 支持的工具
